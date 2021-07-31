@@ -1444,7 +1444,7 @@ function baseCreateRenderer(
         if (m) {
           queuePostRenderEffect(m, parentSuspense)
         }
-        // VUENEXT-初始化流程 12.1-触发组件钩子 mounted
+        // VUENEXT-初始化流程 12.4-触发组件钩子 mounted
         // onVnodeMounted
         if ((vnodeHook = props && props.onVnodeMounted)) {
           queuePostRenderEffect(() => {
