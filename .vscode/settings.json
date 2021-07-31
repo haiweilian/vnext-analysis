@@ -1,0 +1,12 @@
+{
+  "editor.formatOnSave": true,
+  "todo-tree.general.tags": ["VUETODO", "VUENEXT-初始化流程"],
+  "todo-tree.highlights.customHighlight": {
+    "VUETODO": {
+      "background": "#FFFFFF"
+    },
+    "VUENEXT-初始化流程": {
+      "background": "#66CC99"
+    }
+  }
+}
