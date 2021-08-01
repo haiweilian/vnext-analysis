@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>更新流程-list</title>
+  </head>
+  <body>
+    <div id="app">
+      <ul>
+        <li v-for="item of list" :key="item">{{item}}</li>
+      </ul>
+      <button @click="toggle">Toggle list</button>
+    </div>
+    <script src="../../../vue-next-3.0.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp } = Vue;
+      const App = {
+        data() {
+          return {
+            flag: true,
+            list: ["a", "b", "c", "d", "e"],
+          };
+        },
+        methods: {
+          toggle() {
+            this.flag = !this.flag;
+            this.list = this.flag
+              ? ["a", "b", "c", "d", "e"]
+              : ["a", "b", "f", "d", "e"];
+          },
+        },
+      };
+
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>
