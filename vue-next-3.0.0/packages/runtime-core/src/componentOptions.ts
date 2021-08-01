@@ -430,11 +430,14 @@ export function applyOptions(
   deferredWatch: ComponentWatchOptions[] = [],
   asMixin: boolean = false
 ) {
+  // Options API：兼容 Vue.js 2.x
   const {
     // composition
+    // 组合
     mixins,
     extends: extendsOptions,
     // state
+    // 数组状态
     data: dataOptions,
     computed: computedOptions,
     methods,
@@ -442,9 +445,11 @@ export function applyOptions(
     provide: provideOptions,
     inject: injectOptions,
     // assets
+    // 组件和指令
     components,
     directives,
     // lifecycle
+    // 生命周期
     beforeMount,
     mounted,
     beforeUpdate,
@@ -461,6 +466,7 @@ export function applyOptions(
     errorCaptured
   } = options
 
+  // instance.proxy 作为 this
   const publicThis = instance.proxy!
   const ctx = instance.ctx
   const globalMixins = instance.appContext.mixins

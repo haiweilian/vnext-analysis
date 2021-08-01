@@ -400,29 +400,48 @@ export function createComponentInstance(
 ) {
   const type = vnode.type as ConcreteComponent
   // inherit parent app context - or - if root, adopt from root vnode
+  // 继承父组件实例上的 appContext，如果是根组件，则直接从根 vnode 中取。
   const appContext =
     (parent ? parent.appContext : vnode.appContext) || emptyAppContext
 
   const instance: ComponentInternalInstance = {
+    // 组件唯一 id
     uid: uid++,
+    // 组件 vnode
     vnode,
+    // vnode 节点类型
     type,
+    // 父组件实例
     parent,
+    // app 上下文
     appContext,
+    // 根组件实例
     root: null!, // to be immediately set
+    // 新的组件 vnode
     next: null,
+    // 子节点 vnode
     subTree: null!, // will be set synchronously right after creation
+    // 带副作用更新函数
     update: null!, // will be set synchronously right after creation
+    // 渲染函数
     render: null,
+    // 渲染上下文代理
     proxy: null,
+    // 带有 with 区块的渲染上下文代理
     withProxy: null,
+    // 响应式相关对象
     effects: null,
+    // 依赖注入相关
     provides: parent ? parent.provides : Object.create(appContext.provides),
+    // 渲染代理的属性访问缓存
     accessCache: null!,
+    // 渲染缓存
     renderCache: [],
 
     // local resovled assets
+    // 注册的组件
     components: null,
+    // 注册的指令
     directives: null,
 
     // resolved props and emits options
@@ -430,50 +449,81 @@ export function createComponentInstance(
     emitsOptions: normalizeEmitsOptions(type, appContext),
 
     // emit
+    // 派发事件方法
     emit: null as any, // to be set immediately
     emitted: null,
 
     // state
+    // 渲染上下文
     ctx: EMPTY_OBJ,
+    // data 数据
     data: EMPTY_OBJ,
+    // props 数据
     props: EMPTY_OBJ,
+    // 普通属性
     attrs: EMPTY_OBJ,
+    // 插槽相关
     slots: EMPTY_OBJ,
+    // 组件或者 DOM 的 ref 引用
     refs: EMPTY_OBJ,
+    // setup 函数返回的响应式结果
     setupState: EMPTY_OBJ,
+    // setup 函数上下文数据
     setupContext: null,
 
     // suspense related
+    // suspense 相关
     suspense,
     suspenseId: suspense ? suspense.pendingId : 0,
+    // suspense 异步依赖
     asyncDep: null,
+    // suspense 异步依赖是否都已处理
     asyncResolved: false,
 
     // lifecycle hooks
     // not using enums here because it results in computed properties
+    // 是否挂载
     isMounted: false,
+    // 是否卸载
     isUnmounted: false,
+    // 是否激活
     isDeactivated: false,
+    // 生命周期，before create
     bc: null,
+    // 生命周期，created
     c: null,
+    // 生命周期，before mount
     bm: null,
+    // 生命周期，mounted
     m: null,
+    // 生命周期，before update
     bu: null,
+    // 生命周期，updated
     u: null,
+    // 生命周期，unmounted
     um: null,
+    // 生命周期，before unmount
     bum: null,
+    // 生命周期, deactivated
     da: null,
+    // 生命周期 activated
     a: null,
+    // 生命周期 render triggered
     rtg: null,
+    // 生命周期 render tracked
     rtc: null,
+    // 生命周期 error captured
     ec: null
   }
   if (__DEV__) {
     instance.ctx = createRenderContext(instance)
   } else {
+    // VUENEXT-组件初始化 1.1-初始化渲染上下文(instance.ctx)
     instance.ctx = { _: instance }
   }
+  // 初始化根组件指针
   instance.root = parent ? parent.root : instance
+  // 初始化派发事件方法
   instance.emit = emit.bind(null, instance)
 
   if (__DEV__ || __FEATURE_PROD_DEVTOOLS__) {
@@ -514,11 +564,12 @@ export function setupComponent(
   isInSSRComponentSetup = isSSR
 
   const { props, children, shapeFlag } = instance.vnode
+  // 判断是否是一个有状态的组件
   const isStateful = shapeFlag & ShapeFlags.STATEFUL_COMPONENT
-  // VUENEXT-初始化流程 11.1-初始化组件实例 Props、Slots
+  // VUENEXT-组件初始化 2.1-初始化 props、slots
   initProps(instance, props, isStateful, isSSR)
   initSlots(instance, children)
-
+  // VUENEXT-组件初始化 2.2-设置有状态的组件实例(setupStatefulComponent)
   const setupResult = isStateful
     ? setupStatefulComponent(instance, isSSR) // 组件调用 setup
     : undefined
@@ -550,9 +601,20 @@ function setupStatefulComponent(
     }
   }
   // 0. create render proxy property access cache
+  // 创建渲染代理的属性访问缓存
   instance.accessCache = {}
   // 1. create public instance / render proxy
   // also mark it raw so it's never observed
+  // VUENEXT-组件初始化 3-创建渲染上下文代理 new Proxy(instance.ctx, PublicInstanceProxyHandlers)
+  // 在 Vue3 为方便管理把组件中不同状态的数据存储到 setupState、ctx、data、props 不同的属性中。
+  // 但为了方便通过 instance.ctx 取值会分别代理到 setupState、ctx、data、props 不同的对象上方便访问并对 get、set、has 做了一些处理。
+  // 比如：
+  // get
+  // 1、如果检测在 data 中定义的数据以 $ 或 _ 开头会报警告，因为是保留字符不会做代理。
+  // 2、在模板中使用的变量如果没有定义报警告。
+  // set
+  // 3、不能直接给 props 赋值，因为不符合数据单向流动的设计思想。
+  // 4、不能给 $ 开头的保留属性赋值。
   instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers)
   if (__DEV__) {
     exposePropsOnRenderContext(instance)
@@ -561,13 +623,16 @@ function setupStatefulComponent(
   // 2. call setup()
   const { setup } = Component
   if (setup) {
+    // VUENEXT-组件初始化 4-创建setup上下文(setupContext)
+    // 如果 setup 函数带参数 > 1，则创建一个 setupContext 返回 return { attrs, slots, emit }
+    // 这对应了 setup 的写法 setup(props, ctx)
     const setupContext = (instance.setupContext =
       setup.length > 1 ? createSetupContext(instance) : null)
 
     currentInstance = instance
     pauseTracking()
 
-    // VUENEXT-初始化流程 11.2-调用组件Setup(setup(...args))
+    // VUENEXT-组件初始化 5-调用组件setup(setup(...args))
     const setupResult = callWithErrorHandling(
       setup,
       instance,
@@ -577,11 +642,12 @@ function setupStatefulComponent(
     resetTracking()
     currentInstance = null
 
-    // 当 setup 执行后返回一个 Promise(当 async setup() 情况时)。
+    // 1、当 setup 执行后返回一个 Promise(当 async setup() 情况时)。
     if (isPromise(setupResult)) {
       if (isSSR) {
         // return the promise so server-renderer can wait on it
         return setupResult.then((resolvedResult: unknown) => {
+          // 2、处理 setup 执行结果
           handleSetupResult(instance, resolvedResult, isSSR)
         })
       } else if (__FEATURE_SUSPENSE__) {
@@ -595,14 +661,13 @@ function setupStatefulComponent(
         )
       }
     } else {
+      // 2、处理 setup 执行结果
       handleSetupResult(instance, setupResult, isSSR)
     }
   } else {
+    // 3、完成组件实例设置
     finishComponentSetup(instance, isSSR)
   }
-  // VUENEXT-初始化流程 11.3-设置组件render函数
-  // 当有：setup 时，先调用 handleSetupResult 再调用 finishComponentSetup
-  // 反之：直接调用 finishComponentSetup
 }
 
 export function handleSetupResult(
@@ -610,9 +675,10 @@ export function handleSetupResult(
   setupResult: unknown,
   isSSR: boolean
 ) {
+  // VUENEXT-组件初始化 5.1-setup返回结果是函数
   if (isFunction(setupResult)) {
     // setup returned an inline render function
-    // VUENEXT-初始化流程 11.3.1-设置组件render函数(render)
+    // VUENEXT-组件初始化 5.1.1-设置组件render函数(render)
     // 1、当 setup 返回一个渲染函数，使用用户执行的渲染函数。
     /**
      * export default {
@@ -633,6 +699,7 @@ export function handleSetupResult(
      */
     instance.render = setupResult as InternalRenderFunction
   } else if (isObject(setupResult)) {
+    // VUENEXT-组件初始化 5.2-setup返回结果是对象
     if (__DEV__ && isVNode(setupResult)) {
       warn(
         `setup() should not return VNodes directly - ` +
@@ -644,6 +711,7 @@ export function handleSetupResult(
     if (__DEV__ || __FEATURE_PROD_DEVTOOLS__) {
       instance.devtoolsRawSetupState = setupResult
     }
+    // VUENEXT-组件初始化 5.2.1-把 setup 返回结果变成响应式
     instance.setupState = proxyRefs(setupResult)
     if (__DEV__) {
       exposeSetupStateOnRenderContext(instance)
@@ -687,7 +755,7 @@ function finishComponentSetup(
     }
   } else if (!instance.render) {
     // could be set from setup()
-    // VUENEXT-初始化流程 11.3.2-设置组件render函数(template)
+    // VUENEXT-组件初始化 6-设置组件render函数(template)
     // 如果渲染函数 render 不存在，并且 template 存在，就调用 compile 编译模板。
     // 这种方式通常是运行时编译，一般都是通过 webpack, vite 预编译过了。
     if (compile && Component.template && !Component.render) {
@@ -719,6 +787,7 @@ function finishComponentSetup(
   }
 
   // support for 2.x options
+  // 兼容 Vue.js 2.x Options API
   if (__FEATURE_OPTIONS_API__) {
     currentInstance = instance
     applyOptions(instance, Component)
@@ -729,6 +798,7 @@ function finishComponentSetup(
   if (__DEV__ && !Component.render && instance.render === NOOP) {
     /* istanbul ignore if */
     if (!compile && Component.template) {
+      // 只编写了 template 但使用了 runtime-only 的版本
       warn(
         `Component provided template option but ` +
           `runtime compilation is not supported in this build of Vue.` +
@@ -741,6 +811,7 @@ function finishComponentSetup(
                 : ``) /* should not happen */
       )
     } else {
+      // 既没有写 render 函数，也没有写 template 模板
       warn(`Component is missing template or render function.`)
     }
   }
@@ -763,6 +834,7 @@ const attrHandlers: ProxyHandler<Data> = {
   }
 }
 
+// 这里返回了一个对象，包括 attrs、slots 和 emit 三个属性
 function createSetupContext(instance: ComponentInternalInstance): SetupContext {
   if (__DEV__) {
     // We use getters in dev in case libs like test-utils overwrite instance

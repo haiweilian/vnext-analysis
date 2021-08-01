@@ -1270,8 +1270,10 @@ function baseCreateRenderer(
     optimized
   ) => {
     // VUENEXT-初始化流程 10-创建组件实例对象(createComponentInstance)
+    // VUENEXT-组件初始化 1-创建组件实例对象(createComponentInstance)
     // Vue3 虽然不像 Vue2 那样通过类的方式去实例化组件，但内部也通过对象的方式去创建了当前渲染的组件实例。
     // 返回一个表示组件各种属性的对象。ctx、data、props、attrs、...
+    // 这部分会在组件初始化部分详细讲解
     const instance: ComponentInternalInstance = (initialVNode.component = createComponentInstance(
       initialVNode,
       parentComponent,
@@ -1298,7 +1300,9 @@ function baseCreateRenderer(
     }
 
     // VUENEXT-初始化流程 11-设置组件实例(setupComponent)
-    // 初始化 Props、Slots、执行 setup、设置 render 函数。
+    // VUENEXT-组件初始化 2-设置组件实例(setupComponent)
+    // 创建渲染上下文代理、设置组件实例 render()
+    // 这部分会在组件初始化部分详细讲解
     setupComponent(instance)
     if (__DEV__) {
       endMeasure(instance, `init`)
@@ -1400,7 +1404,6 @@ function baseCreateRenderer(
         if (bm) {
           invokeArrayFns(bm)
         }
-        // VUENEXT-初始化流程 12.1-触发组件钩子 beforeMount
         // onVnodeBeforeMount
         if ((vnodeHook = props && props.onVnodeBeforeMount)) {
           invokeVNodeHook(vnodeHook, parent, initialVNode)
@@ -1411,9 +1414,8 @@ function baseCreateRenderer(
           startMeasure(instance, `render`)
         }
 
-        // VUENEXT-初始化流程 12.2-渲染组件生成子树VNode(renderComponentRoot)
+        // VUENEXT-初始化流程 12.1-渲染组件生成子树VNode(renderComponentRoot)
         // 渲染子树的过程就是一个递归的过程了，内部会调用 render 函数，真正调用的是 createVNode 创建 VNode。
-        // 根据 第 [11] 的流程我们知道 render 的来源有两种，手动编写、模板编译。
         // 当处理完毕后，继续调用 patch 方法。
         const subTree = (instance.subTree = renderComponentRoot(instance))
         if (__DEV__) {
@@ -1438,7 +1440,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `patch`)
           }
-          // VUENEXT-初始化流程 12.3-挂载子树VNode(patch)
+          // VUENEXT-初始化流程 12.2-挂载子树VNode(patch)
           // 这样就回到了第 [8.1] 步，继续调用 patch 方法，根据类型不同调用走不用的类型处理逻辑。
           // 根据编写的测试 "<h1>{{hello}}</h1>" 下一步会处理普通元素节点(h1)，接着处理文本节点(hello)。接下来走 13.x 的步骤。
           patch(
@@ -1460,7 +1462,6 @@ function baseCreateRenderer(
         if (m) {
           queuePostRenderEffect(m, parentSuspense)
         }
-        // VUENEXT-初始化流程 12.4-触发组件钩子 mounted
         // onVnodeMounted
         if ((vnodeHook = props && props.onVnodeMounted)) {
           queuePostRenderEffect(() => {
@@ -1491,8 +1492,7 @@ function baseCreateRenderer(
           pushWarningContext(next || instance.vnode)
         }
 
-        // VUENEXT-更新流程 1.1-是否更新组件属性
-        // VUENEXT-更新流程 5.4-是否更新组件属性
+        // VUENEXT-更新流程 2-是否更新组件属性
         // next 表示新的组件 vnode，那么它是那来的呢，为什么又需要判断它呢。
         // 组件重新渲染可能会有两种场景:
         // 1、一种是组件本身的数据变化，这种情况下 next 是 null；
@@ -1510,7 +1510,6 @@ function baseCreateRenderer(
           invokeArrayFns(bu)
         }
         // onVnodeBeforeUpdate
-        // VUENEXT-更新流程 2-触发组件钩子 beforeUpdate
         if ((vnodeHook = next.props && next.props.onVnodeBeforeUpdate)) {
           invokeVNodeHook(vnodeHook, parent, next, vnode)
         }
@@ -1567,7 +1566,6 @@ function baseCreateRenderer(
           queuePostRenderEffect(u, parentSuspense)
         }
         // onVnodeUpdated
-        // VUENEXT-更新流程 7-触发组件钩子 updated
         if ((vnodeHook = next.props && next.props.onVnodeUpdated)) {
           queuePostRenderEffect(() => {
             invokeVNodeHook(vnodeHook!, parent, next!, vnode)

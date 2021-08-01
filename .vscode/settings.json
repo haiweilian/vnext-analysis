@@ -3,7 +3,8 @@
   "todo-tree.general.tags": [
     "VUETODO",
     "VUENEXT-初始化流程",
-    "VUENEXT-更新流程"
+    "VUENEXT-更新流程",
+    "VUENEXT-组件初始化"
   ],
   "todo-tree.highlights.customHighlight": {
     "VUETODO": {
@@ -14,6 +15,9 @@
     },
     "VUENEXT-更新流程": {
       "background": "#3333FF"
+    },
+    "VUENEXT-组件初始化": {
+      "background": "#CC33CC"
     }
   }
 }
