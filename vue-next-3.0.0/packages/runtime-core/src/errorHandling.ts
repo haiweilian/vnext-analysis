@@ -58,6 +58,7 @@ export const ErrorTypeStrings: Record<number | string, string> = {
 
 export type ErrorTypes = LifecycleHooks | ErrorCodes
 
+// 统一的函数执行并捕获错误
 export function callWithErrorHandling(
   fn: Function,
   instance: ComponentInternalInstance | null,
@@ -96,6 +97,7 @@ export function callWithAsyncErrorHandling(
   return values
 }
 
+// 由 callWithErrorHandling 调用
 export function handleError(
   err: unknown,
   instance: ComponentInternalInstance | null,
@@ -108,11 +110,15 @@ export function handleError(
     // the exposed instance is the render proxy to keep it consistent with 2.x
     const exposedInstance = instance.proxy
     // in production the hook receives only the error code
+    // 获取错误信息
     const errorInfo = __DEV__ ? ErrorTypeStrings[type] : type
+    // VUENEXT-生命周期 9-执行 onErrorCaptured 钩子函数
+    // 尝试向上查找所有父组件，执行 errorCaptured 钩子函数
     while (cur) {
       const errorCapturedHooks = cur.ec
       if (errorCapturedHooks) {
         for (let i = 0; i < errorCapturedHooks.length; i++) {
+          // 如果执行的 errorCaptured 钩子函数并返回 true，则停止向上查找。
           if (errorCapturedHooks[i](err, exposedInstance, errorInfo)) {
             return
           }
@@ -121,6 +127,7 @@ export function handleError(
       cur = cur.parent
     }
     // app-level handling
+    // 执行配置的错误处理
     const appErrorHandler = instance.appContext.config.errorHandler
     if (appErrorHandler) {
       callWithErrorHandling(
@@ -132,6 +139,7 @@ export function handleError(
       return
     }
   }
+  // 往控制台输出未处理的错误
   logError(err, type, contextVNode, throwInDev)
 }
 

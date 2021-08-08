@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>computed</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- <p>{{count}}</p> -->
+      <button @click="add">add</button>
+    </div>
+    <script src="../../../vue-next-3.0.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp, ref, watch } = Vue;
+      const App = {
+        setup(props, ctx) {
+          const count = ref(0);
+
+          const add = () => {
+            count.value++;
+            count.value++;
+            count.value++;
+          };
+
+          watch(count, () => {
+            console.log(count.value);
+          });
+
+          return {
+            add,
+            count,
+          };
+        },
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

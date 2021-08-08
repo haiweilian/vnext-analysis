@@ -39,18 +39,20 @@ const shallowReadonlyGet = /*#__PURE__*/ createGetter(true, true)
 
 const arrayInstrumentations: Record<string, Function> = {}
 // instrument identity-sensitive Array methods to account for possible reactive
-// values
+// 对查询方法做处理，如果值经过代理转换，再用原始值就查询不到了。
 ;(['includes', 'indexOf', 'lastIndexOf'] as const).forEach(key => {
   const method = Array.prototype[key] as any
   arrayInstrumentations[key] = function(this: unknown[], ...args: unknown[]) {
+    // toRaw 可以把响应式对象转成原始数据
     const arr = toRaw(this)
+    // 依赖收集
     for (let i = 0, l = this.length; i < l; i++) {
       track(arr, TrackOpTypes.GET, i + '')
     }
-    // we run the method using the original args first (which may be reactive)
+    // 先尝试用参数本身，可能是响应式数据
     const res = method.apply(arr, args)
     if (res === -1 || res === false) {
-      // if that didn't work, run it again using raw values.
+      // 如果失败，再尝试把参数转成原始数据
       return method.apply(arr, args.map(toRaw))
     } else {
       return res
@@ -69,26 +71,33 @@ const arrayInstrumentations: Record<string, Function> = {}
   }
 })
 
+// VUENEXT-响应式实现原理 4-依赖收集 get 函数
 function createGetter(isReadonly = false, shallow = false) {
   return function get(target: Target, key: string | symbol, receiver: object) {
+    // VUENEXT-响应式实现原理 4.1-对特殊的 key 做代理
     if (key === ReactiveFlags.IS_REACTIVE) {
+      // 代理 observed.__v_isReactive
       return !isReadonly
     } else if (key === ReactiveFlags.IS_READONLY) {
+      // 代理 observed.__v_isReadonly
       return isReadonly
     } else if (
+      // 代理 observed.__v_raw 返回原始对象
       key === ReactiveFlags.RAW &&
       receiver === (isReadonly ? readonlyMap : reactiveMap).get(target)
     ) {
       return target
     }
 
+    // VUENEXT-响应式实现原理 4.2-如果是数组，对函数方法做处理。
     const targetIsArray = isArray(target)
+    // arrayInstrumentations 包含对数组一些方法修改的函数
     if (targetIsArray && hasOwn(arrayInstrumentations, key)) {
       return Reflect.get(arrayInstrumentations, key, receiver)
     }
 
+    // VUENEXT-响应式实现原理 4.3-通过 Reflect.get 求值，然后会执行 track 函数收集依赖
     const res = Reflect.get(target, key, receiver)
-
     const keyIsSymbol = isSymbol(key)
     if (
       keyIsSymbol
@@ -98,6 +107,7 @@ function createGetter(isReadonly = false, shallow = false) {
       return res
     }
 
+    // VUENEXT-响应式实现原理 4.4-依赖收集调用(track)
     if (!isReadonly) {
       track(target, TrackOpTypes.GET, key)
     }
@@ -116,6 +126,9 @@ function createGetter(isReadonly = false, shallow = false) {
       // Convert returned value into a proxy as well. we do the isObject check
       // here to avoid invalid value warning. Also need to lazy access readonly
       // and reactive here to avoid circular dependency.
+      // VUENEXT-响应式实现原理 4.3-如果是对象，则递归执行响应式。回到 第 【1】步。
+      // 在 Vue2 中，是在初始化阶段，即定义劫持对象的时候就已经递归执行了
+      // 在 Vue3 中，是在对象被访问的时候才递归执行下一步 reactive，延迟定义响应式的方式也提升性能。
       return isReadonly ? readonly(res) : reactive(res)
     }
 
@@ -126,6 +139,7 @@ function createGetter(isReadonly = false, shallow = false) {
 const set = /*#__PURE__*/ createSetter()
 const shallowSet = /*#__PURE__*/ createSetter(true)
 
+// VUENEXT-响应式实现原理 6-派发通知 set 函数
 function createSetter(shallow = false) {
   return function set(
     target: object,
@@ -148,12 +162,15 @@ function createSetter(shallow = false) {
       isArray(target) && isIntegerKey(key)
         ? Number(key) < target.length
         : hasOwn(target, key)
+    // 设置值
     const result = Reflect.set(target, key, value, receiver)
-    // don't trigger if target is something up in the prototype chain of original
+    // 如果目标的原型链也是一个 proxy，通过 Reflect.set 修改原型链上的属性会再次触发 setter，这种情况下就没必要触发两次 trigger
     if (target === toRaw(receiver)) {
       if (!hadKey) {
+        // 派发通知：添加操作类型
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
+        // 派发通知：更新操作类型，包含旧值
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
     }

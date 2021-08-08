@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>响应式实现原理-reactive</title>
+  </head>
+  <body>
+    <div id="app">
+      <p>{{ state.msg }}</p>
+      <button @click="random">Random msg</button>
+    </div>
+    <script src="../../../vue-next-3.0.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp, reactive, computed } = Vue;
+      const App = {
+        setup(props, ctx) {
+          const state = reactive({
+            msg: "msg reactive",
+          });
+
+          const random = function () {
+            state.msg = Math.random();
+          };
+
+          return {
+            random,
+            state,
+          };
+        },
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

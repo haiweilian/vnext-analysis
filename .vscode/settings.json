@@ -4,7 +4,13 @@
     "VUETODO",
     "VUENEXT-初始化流程",
     "VUENEXT-更新流程",
-    "VUENEXT-组件初始化"
+    "VUENEXT-组件初始化",
+    "VUENEXT-响应式实现原理",
+    "VUENEXT-计算属性",
+    "VUENEXT-侦听器",
+    "VUENEXT-异步任务队列",
+    "VUENEXT-生命周期",
+    "VUENEXT-依赖注入"
   ],
   "todo-tree.highlights.customHighlight": {
     "VUETODO": {
@@ -18,6 +24,21 @@
     },
     "VUENEXT-组件初始化": {
       "background": "#CC33CC"
+    },
+    "VUENEXT-计算属性": {
+      "background": "#CC9999"
+    },
+    "VUENEXT-侦听器": {
+      "background": "#669966"
+    },
+    "VUENEXT-异步任务队列": {
+      "background": "#99CCCC"
+    },
+    "VUENEXT-生命周期": {
+      "background": "#006699"
+    },
+    "VUENEXT-依赖注入": {
+      "background": "#990099"
     }
   }
 }

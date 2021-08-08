@@ -432,6 +432,7 @@ export function createComponentInstance(
     // 响应式相关对象
     effects: null,
     // 依赖注入相关
+    // VUENEXT-依赖注入 1.在默认情况下，组件实例的 provides 继承它的父组件。
     provides: parent ? parent.provides : Object.create(appContext.provides),
     // 渲染代理的属性访问缓存
     accessCache: null!,

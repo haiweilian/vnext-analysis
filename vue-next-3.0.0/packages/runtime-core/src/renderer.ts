@@ -259,19 +259,24 @@ export const enum MoveType {
   REORDER
 }
 
+// VUENEXT-异步任务队列 5-调用示例往组件-配置
 const prodEffectOptions = {
   scheduler: queueJob,
   // #1801, #2043 component render effects should allow recursive updates
   allowRecurse: true
 }
 
+// VUENEXT-生命周期 10-开发模式下的 onRenderTracked 和 onRenderTriggered
+// 在执行 effect 时候传入的配置参数，在响应式里的 track 和 trigger 阶段执行。
 function createDevEffectOptions(
   instance: ComponentInternalInstance
 ): ReactiveEffectOptions {
   return {
     scheduler: queueJob,
     allowRecurse: true,
+    // 执行 onRenderTracked 钩子函数
     onTrack: instance.rtc ? e => invokeArrayFns(instance.rtc!, e) : void 0,
+    // 执行 onRenderTriggered 钩子函数
     onTrigger: instance.rtg ? e => invokeArrayFns(instance.rtg!, e) : void 0
   }
 }
@@ -1392,6 +1397,7 @@ function baseCreateRenderer(
     optimized
   ) => {
     // create reactive effect for rendering
+    // VUENEXT-响应式实现原理 8.2-设置组件副作用函数(effect)
     // 创建响应式的副作用渲染函数，这个是 reactivity 包的 effect 函数。
     // 当数据变化的时候会重新执行 componentEffect 函数，达到更新组件的目的。
     instance.update = effect(function componentEffect() {
@@ -1401,6 +1407,7 @@ function baseCreateRenderer(
         const { bm, m, parent } = instance
 
         // beforeMount hook
+        // VUENEXT-生命周期 3-执行 beforeMount 钩子函数
         if (bm) {
           invokeArrayFns(bm)
         }
@@ -1459,7 +1466,9 @@ function baseCreateRenderer(
           initialVNode.el = subTree.el
         }
         // mounted hook
+        // VUENEXT-生命周期 4-执行 mounted 钩子函数
         if (m) {
+          // 添加进任务队列中，当 render 的任务队列执行完成，再通过 flushPostFlushCbs 执行 mounted
           queuePostRenderEffect(m, parentSuspense)
         }
         // onVnodeMounted
@@ -1506,6 +1515,7 @@ function baseCreateRenderer(
         next.el = vnode.el
 
         // beforeUpdate hook
+        // VUENEXT-生命周期 5-执行 beforeUpdate 钩子函数
         if (bu) {
           invokeArrayFns(bu)
         }
@@ -1562,7 +1572,9 @@ function baseCreateRenderer(
           updateHOCHostEl(instance, nextTree.el)
         }
         // updated hook
+        // VUENEXT-生命周期 6-执行 updated 钩子函数
         if (u) {
+          // 添加进任务队列中，当 render 的任务队列执行完成，再通过 flushPostFlushCbs 执行 updated
           queuePostRenderEffect(u, parentSuspense)
         }
         // onVnodeUpdated
@@ -1580,6 +1592,8 @@ function baseCreateRenderer(
           popWarningContext()
         }
       }
+      // VUENEXT-异步任务队列 5-调用示例往组件-配置
+      // 通过配置调度执行 queueJob，那么在 trigger 执行依赖的时候 effect.options.scheduler(effect) 相当于调用 queueJob(effect) 添加新执行队列。
     }, __DEV__ ? createDevEffectOptions(instance) : prodEffectOptions)
   }
 
@@ -2241,6 +2255,7 @@ function baseCreateRenderer(
 
     const { bum, effects, update, subTree, um } = instance
     // beforeUnmount hook
+    // VUENEXT-生命周期 7-执行 beforeUnmount 钩子函数
     if (bum) {
       invokeArrayFns(bum)
     }
@@ -2256,7 +2271,9 @@ function baseCreateRenderer(
       unmount(subTree, instance, parentSuspense, doRemove)
     }
     // unmounted hook
+    // VUENEXT-生命周期 8-执行 unmounted 钩子函数
     if (um) {
+      // 添加进任务队列中，当 render 的任务队列执行完成，再通过 flushPostFlushCbs 执行 unmounted
       queuePostRenderEffect(um, parentSuspense)
     }
     queuePostRenderEffect(() => {

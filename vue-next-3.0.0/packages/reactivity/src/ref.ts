@@ -26,6 +26,7 @@ export function isRef(r: any): r is Ref {
   return Boolean(r && r.__v_isRef === true)
 }
 
+// VUENEXT-响应式实现原理 10-ref API
 export function ref<T extends object>(
   value: T
 ): T extends Ref ? T : Ref<UnwrapRef<T>>
@@ -50,25 +51,34 @@ class RefImpl<T> {
   public readonly __v_isRef = true
 
   constructor(private _rawValue: T, private readonly _shallow = false) {
+    // VUENEXT-响应式实现原理 10.2-convert
+    // 如果是对象则转换一个 reactive 对象。
     this._value = _shallow ? _rawValue : convert(_rawValue)
   }
 
   get value() {
+    // VUENEXT-响应式实现原理 10.3-依赖收集
+    // 依赖收集，当前 RefImpl 实例作为 target, key 为固定的 value，
     track(toRaw(this), TrackOpTypes.GET, 'value')
     return this._value
   }
 
   set value(newVal) {
+    // VUENEXT-响应式实现原理 10.4-只处理 value 属性的修改
     if (hasChanged(toRaw(newVal), this._rawValue)) {
       this._rawValue = newVal
+      // 判断有变化后更新值，判断设置的值。
       this._value = this._shallow ? newVal : convert(newVal)
+      // 派发通知
       trigger(toRaw(this), TriggerOpTypes.SET, 'value', newVal)
     }
   }
 }
 
+// VUENEXT-响应式实现原理 10.1-createRef
 function createRef(rawValue: unknown, shallow = false) {
   if (isRef(rawValue)) {
+    // 如果传入的就是一个 ref，那么返回自身即可，处理嵌套 ref 的情况。
     return rawValue
   }
   return new RefImpl(rawValue, shallow)
@@ -135,10 +145,12 @@ class CustomRefImpl<T> {
   }
 }
 
+// 自定义 ref
 export function customRef<T>(factory: CustomRefFactory<T>): Ref<T> {
   return new CustomRefImpl(factory) as any
 }
 
+// reactive 转换成 单个 ref
 export function toRefs<T extends object>(object: T): ToRefs<T> {
   if (__DEV__ && !isProxy(object)) {
     console.warn(`toRefs() expects a reactive object but received a plain one.`)
