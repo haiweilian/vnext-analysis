@@ -1,0 +1,75 @@
+{
+  "editor.formatOnSave": true,
+  "todo-tree.general.tags": [
+    "VUETODO",
+    "VUENEXT-组件渲染",
+    "VUENEXT-组件更新",
+    "VUENEXT-组件初始化",
+    "VUENEXT-响应式实现原理",
+    "VUENEXT-计算属性",
+    "VUENEXT-侦听器",
+    "VUENEXT-异步任务队列",
+    "VUENEXT-生命周期",
+    "VUENEXT-依赖注入",
+    "VUENEXT-Props",
+    "VUENEXT-Slot",
+    "VUENEXT-Directive",
+    "VUENEXT-VModel",
+    "VUENEXT-Teleport",
+    "VUENEXT-KeepAlive",
+    "VUENEXT-Transition"
+  ],
+  "todo-tree.highlights.customHighlight": {
+    "VUETODO": {
+      "background": "#ffffff"
+    },
+    "VUENEXT-组件渲染": {
+      "background": "#99cc33"
+    },
+    "VUENEXT-组件更新": {
+      "background": "#66cc99"
+    },
+    "VUENEXT-组件初始化": {
+      "background": "#33cc00"
+    },
+    "VUENEXT-响应式实现原理": {
+      "background": "#669933"
+    },
+    "VUENEXT-计算属性": {
+      "background": "#009900"
+    },
+    "VUENEXT-侦听器": {
+      "background": "#99cccc"
+    },
+    "VUENEXT-异步任务队列": {
+      "background": "#0099ff"
+    },
+    "VUENEXT-生命周期": {
+      "background": "#3366cc"
+    },
+    "VUENEXT-依赖注入": {
+      "background": "#3333ff"
+    },
+    "VUENEXT-Props": {
+      "background": "#006699"
+    },
+    "VUENEXT-Slot": {
+      "background": "#cc9999"
+    },
+    "VUENEXT-Directive": {
+      "background": "#cc9900"
+    },
+    "VUENEXT-VModel": {
+      "background": "#cc33cc"
+    },
+    "VUENEXT-Teleport": {
+      "background": "#993366"
+    },
+    "VUENEXT-KeepAlive": {
+      "background": "#660000"
+    },
+    "VUENEXT-Transition": {
+      "background": "#6600cc"
+    }
+  }
+}
