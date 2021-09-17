@@ -7,6 +7,7 @@ const doc = (typeof document !== 'undefined' ? document : null) as Document
 const staticTemplateCache = new Map<string, DocumentFragment>()
 
 export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
+  // VUENEXT-组件渲染 13.6.1-把创建的元素节点挂载到容器上(insert)
   insert: (child, parent, anchor) => {
     parent.insertBefore(child, anchor || null)
   },
@@ -18,6 +19,7 @@ export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
     }
   },
 
+  // VUENEXT-组件渲染 13.2.1-创建 DOM 元素节点(createElement)
   createElement: (tag, isSVG, is, props): Element => {
     const el = isSVG
       ? doc.createElementNS(svgNS, tag)
@@ -38,6 +40,7 @@ export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
     node.nodeValue = text
   },
 
+  // VUENEXT-组件渲染 13.3.1-子节点是纯文本(setElementText)
   setElementText: (el, text) => {
     el.textContent = text
   },

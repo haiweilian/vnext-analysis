@@ -390,6 +390,7 @@ const normalizeRef = ({ ref }: VNodeProps): VNodeNormalizedRefAtom | null => {
   ) as any
 }
 
+// VUENEXT-组件渲染 6.2-创建VNode对象
 function createBaseVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
@@ -400,6 +401,7 @@ function createBaseVNode(
   isBlockNode = false,
   needFullChildrenNormalization = false
 ) {
+  // 1、创建 vnode 对象，用对象描述一个组件。
   const vnode = {
     __v_isVNode: true,
     __v_skip: true,
@@ -428,6 +430,7 @@ function createBaseVNode(
     appContext: null
   } as VNode
 
+  // 2、标准化子节点，把不同数据类型的 children 转成数组或者文本类型。
   if (needFullChildrenNormalization) {
     normalizeChildren(vnode, children)
     // normalize suspense children
@@ -481,6 +484,8 @@ export const createVNode = (
   __DEV__ ? createVNodeWithArgsTransform : _createVNode
 ) as typeof _createVNode
 
+// VUENEXT-组件渲染 6.1-执行创建VNode对象
+// 对 props 做标准化处理、对 vnode 的类型信息编码、创建 vnode 对象，标准化子节点 children。
 function _createVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
@@ -517,7 +522,7 @@ function _createVNode(
     type = convertLegacyComponent(type, currentRenderingInstance)
   }
 
-  // class & style normalization.
+  // 1、处理 props 相关逻辑，标准化 class 和 style
   if (props) {
     // for reactive or proxy objects, we need to clone it to enable mutation.
     props = guardReactiveProps(props)!
@@ -535,17 +540,17 @@ function _createVNode(
     }
   }
 
-  // encode the vnode type information into a bitmap
+  // 2、对 vnode 类型信息编码，以便在后面根据不同的类型执行相应的处理逻辑
   const shapeFlag = isString(type)
-    ? ShapeFlags.ELEMENT
+    ? ShapeFlags.ELEMENT // 1
     : __FEATURE_SUSPENSE__ && isSuspense(type)
-    ? ShapeFlags.SUSPENSE
+    ? ShapeFlags.SUSPENSE // 128
     : isTeleport(type)
-    ? ShapeFlags.TELEPORT
+    ? ShapeFlags.TELEPORT // 64
     : isObject(type)
-    ? ShapeFlags.STATEFUL_COMPONENT
+    ? ShapeFlags.STATEFUL_COMPONENT // 4
     : isFunction(type)
-    ? ShapeFlags.FUNCTIONAL_COMPONENT
+    ? ShapeFlags.FUNCTIONAL_COMPONENT // 2
     : 0
 
   if (__DEV__ && shapeFlag & ShapeFlags.STATEFUL_COMPONENT && isProxy(type)) {
@@ -560,6 +565,7 @@ function _createVNode(
     )
   }
 
+  // 3、创建 vnode 对象，用对象描述一个组件。
   return createBaseVNode(
     type,
     props,

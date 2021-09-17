@@ -173,6 +173,8 @@ export type CreateAppFunction<HostElement> = (
 
 let uid = 0
 
+// VUENEXT-组件渲染 4.1-创建实例API(createAppAPI => app)
+// 创建实例API，如 use、mixin、component、directive、mount、unmount。
 export function createAppAPI<HostElement>(
   render: RootRenderFunction,
   hydrate?: RootHydrateFunction
@@ -273,12 +275,16 @@ export function createAppAPI<HostElement>(
         return app
       },
 
+      // VUENEXT-组件渲染 5.1-执行挂载组件(mount())
+      // 使用 app.mount('#app') 挂载时真正调用的函数。
       mount(
         rootContainer: HostElement,
         isHydrate?: boolean,
         isSVG?: boolean
       ): any {
         if (!isMounted) {
+          // VUENEXT-组件渲染 6-调用创建VNode(createVNode(rootComponent))
+          // 创建根组件的 vnode
           const vnode = createVNode(
             rootComponent as ConcreteComponent,
             rootProps
@@ -297,6 +303,8 @@ export function createAppAPI<HostElement>(
           if (isHydrate && hydrate) {
             hydrate(vnode as VNode<Node, Element>, rootContainer as any)
           } else {
+            // VUENEXT-组件渲染 7-调用渲染器渲染VNode(render(vnode, rootContainer))
+            // render 函数时调用 createAppAPI 传入的
             render(vnode, rootContainer, isSVG)
           }
           isMounted = true

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>template</title>
+  </head>
+  <body>
+    <div id="app">
+      <h1>{{hello}}</h1>
+    </div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp } = Vue;
+      const App = {
+        data() {
+          return {
+            hello: "hello",
+          };
+        },
+      };
+      // template 编译成 render
+      // 11-设置组件实例(setupComponent)
+      // 12.1-渲染组件生成子树VNode(renderComponentRoot)
+      // 12.1.1-执行实例 render 方法。
+      const app = createApp(App, {
+        // 13.5-设置处理 Props(hostPatchProp)
+        class: "col",
+        // 13.5-设置处理 Props(hostPatchProp)
+        style: { color: "red" },
+      });
+      // 5.1-执行挂载组件(mount())
+      app.mount("#app");
+    </script>
+  </body>
+</html>

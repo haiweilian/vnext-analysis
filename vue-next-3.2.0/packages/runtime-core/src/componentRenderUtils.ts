@@ -51,6 +51,7 @@ export function renderComponentRoot(
     slots,
     attrs,
     emit,
+    // 实例上的 render 方法
     render,
     renderCache,
     data,
@@ -89,6 +90,8 @@ export function renderComponentRoot(
       if (__DEV__ && attrs === props) {
         markAttrsAccessed()
       }
+      // VUENEXT-组件渲染 12.1.1-执行实例 render 方法。
+      // tips: render 函数有多种来源，这部分会在【组件初始化】部分分析
       result = normalizeVNode(
         render.length > 1
           ? render(

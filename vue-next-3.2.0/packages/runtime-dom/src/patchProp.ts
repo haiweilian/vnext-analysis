@@ -10,6 +10,8 @@ const nativeOnRE = /^on[a-z]/
 
 type DOMRendererOptions = RendererOptions<Node, Element>
 
+// VUENEXT-组件渲染 13.5.1-设置处理 Props(patchProp)
+// 这里面是处理各种属性的方法
 export const patchProp: DOMRendererOptions['patchProp'] = (
   el,
   key,

@@ -302,6 +302,7 @@ export const queuePostRenderEffect = __FEATURE_SUSPENSE__
  * })
  * ```
  */
+// VUENEXT-组件渲染 3-创建渲染器(createRenderer => baseCreateRenderer)
 export function createRenderer<
   HostNode = RendererNode,
   HostElement = RendererElement
@@ -331,6 +332,8 @@ function baseCreateRenderer(
 ): HydrationRenderer
 
 // implementation
+// VUENEXT-组件渲染 3.1-创建渲染器(createRenderer => baseCreateRenderer)
+// 创建渲染器：组件的创建和更新逻辑的入口在此处定义，最后返回 render 和 createApp。
 function baseCreateRenderer(
   options: RendererOptions,
   createHydrationFns?: typeof createHydrationFunctions
@@ -364,10 +367,12 @@ function baseCreateRenderer(
 
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
+  // VUENEXT-组件渲染 8.1-执行创建或者更新组件(patch)
+  // 记住下面重要参数的意义。
   const patch: PatchFn = (
-    n1,
-    n2,
-    container,
+    n1, // 表示旧的 vnode，当 n1 为 null 的时候，表示是一次挂载的过程；
+    n2, // 表示新的 vnode 节点，后续会根据这个 vnode 类型执行不同的处理逻辑；
+    container, // 表示 DOM 容器，也就是 vnode 渲染生成 DOM 后，会挂载到 container 下面。
     anchor = null,
     parentComponent = null,
     parentSuspense = null,
@@ -380,6 +385,7 @@ function baseCreateRenderer(
     }
 
     // patching & not same type, unmount old tree
+    // tips: 这段逻辑【组件更新】的分析。
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
@@ -391,14 +397,18 @@ function baseCreateRenderer(
       n2.dynamicChildren = null
     }
 
+    // 处理不同的类型节点
     const { type, ref, shapeFlag } = n2
     switch (type) {
+      // 处理文本节点
       case Text:
         processText(n1, n2, container, anchor)
         break
+      // 处理注释节点
       case Comment:
         processCommentNode(n1, n2, container, anchor)
         break
+      // 处理静态节点
       case Static:
         if (n1 == null) {
           mountStaticNode(n2, container, anchor, isSVG)
@@ -406,6 +416,7 @@ function baseCreateRenderer(
           patchStaticNode(n1, n2, container, isSVG)
         }
         break
+      // 处理 Fragment 元素
       case Fragment:
         processFragment(
           n1,
@@ -421,6 +432,8 @@ function baseCreateRenderer(
         break
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
+          // 处理 ELEMENT
+          // VUENEXT-组件渲染 13-处理普通元素节点(processElement)
           processElement(
             n1,
             n2,
@@ -433,6 +446,8 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // 处理 COMPONENT
+          // VUENEXT-组件渲染 9-处理组件(processComponent)
           processComponent(
             n1,
             n2,
@@ -445,6 +460,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          // 处理 TELEPORT
           ;(type as typeof TeleportImpl).process(
             n1 as TeleportVNode,
             n2 as TeleportVNode,
@@ -458,6 +474,7 @@ function baseCreateRenderer(
             internals
           )
         } else if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
+          // 处理 SUSPENSE
           ;(type as typeof SuspenseImpl).process(
             n1,
             n2,
@@ -581,6 +598,7 @@ function baseCreateRenderer(
     hostRemove(anchor!)
   }
 
+  // 处理普通元素节点
   const processElement = (
     n1: VNode | null,
     n2: VNode,
@@ -593,7 +611,9 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     isSVG = isSVG || (n2.type as string) === 'svg'
+    // 旧vnode == null
     if (n1 == null) {
+      // VUENEXT-组件渲染 13.1-挂载节点(mountElement)
       mountElement(
         n2,
         container,
@@ -617,6 +637,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 挂载普通元素节点
   const mountElement = (
     vnode: VNode,
     container: RendererElement,
@@ -642,6 +663,8 @@ function baseCreateRenderer(
       // only do this in production since cloned trees cannot be HMR updated.
       el = vnode.el = hostCloneNode(vnode.el)
     } else {
+      // VUENEXT-组件渲染 13.2-创建 DOM 元素节点(hostCreateElement)
+      // hostCreateElement 调用的是第 [2.1] 步合并的渲染配置，请看 `nodeOps` 文件中的 [13.2.1] 步。
       el = vnode.el = hostCreateElement(
         vnode.type as string,
         isSVG,
@@ -652,8 +675,12 @@ function baseCreateRenderer(
       // mount children first, since some props may rely on child content
       // being already rendered, e.g. `<select value>`
       if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // VUENEXT-组件渲染 13.3-子节点是纯文本(hostSetElementText)
+        // hostSetElementText 调用的是第 [2.1] 步合并的渲染配置，请看 `nodeOps` 文件中的 [13.3.1] 步。
         hostSetElementText(el, vnode.children as string)
       } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // VUENEXT-组件渲染 13.4-子节点是数组(mountChildren)
+        // 循环处理子节点
         mountChildren(
           vnode.children as VNodeArrayChildren,
           el,
@@ -669,7 +696,9 @@ function baseCreateRenderer(
       if (dirs) {
         invokeDirectiveHook(vnode, null, parentComponent, 'created')
       }
-      // props
+
+      // VUENEXT-组件渲染 13.5-设置处理 Props(hostPatchProp)
+      // 处理 props，比如设置 class、style、event 等属性，设置方法看 `patchProp` 文件中的 13.5.1 步
       if (props) {
         for (const key in props) {
           if (key !== 'value' && !isReservedProp(key)) {
@@ -727,6 +756,8 @@ function baseCreateRenderer(
     if (needCallTransitionHooks) {
       transition!.beforeEnter(el)
     }
+    // VUENEXT-组件渲染 13.6-把创建的元素节点挂载到容器上(hostInsert)
+    // 操作 dom 的方法都在 `nodeOps` 文件。
     hostInsert(el, container, anchor)
     if (
       (vnodeHook = props && props.onVnodeMounted) ||
@@ -779,6 +810,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 挂载子节点
   const mountChildren: MountChildrenFn = (
     children,
     container,
@@ -790,6 +822,7 @@ function baseCreateRenderer(
     optimized,
     start = 0
   ) => {
+    // 循环处理每个子节点，还是调用 patch 方法，继续判断节点类型走处理方法。
     for (let i = start; i < children.length; i++) {
       const child = (children[i] = optimized
         ? cloneIfMounted(children[i] as VNode)
@@ -1155,6 +1188,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 组件处理流程
   const processComponent = (
     n1: VNode | null,
     n2: VNode,
@@ -1167,6 +1201,7 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     n2.slotScopeIds = slotScopeIds
+    // 旧vnode == null
     if (n1 == null) {
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
@@ -1177,6 +1212,7 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // VUENEXT-组件渲染 9.1-挂载组件(mountComponent)
         mountComponent(
           n2,
           container,
@@ -1192,6 +1228,7 @@ function baseCreateRenderer(
     }
   }
 
+  // mountComponent 主要创建组件实例、设置组件实例、设置并运行带副作用的渲染函数
   const mountComponent: MountComponentFn = (
     initialVNode,
     container,
@@ -1205,6 +1242,11 @@ function baseCreateRenderer(
     // mounting
     const compatMountInstance =
       __COMPAT__ && initialVNode.isCompatRoot && initialVNode.component
+
+    // VUENEXT-组件渲染 10-创建组件实例对象(createComponentInstance)
+    // Vue3 虽然不像 Vue2 那样通过类的方式去实例化组件，但内部也通过对象的方式去创建了当前渲染的组件实例。
+    // 返回一个表示组件各种属性的对象。ctx、data、props、attrs、...
+    // tips: 这部分会在【组件初始化】部分分析
     const instance: ComponentInternalInstance =
       compatMountInstance ||
       (initialVNode.component = createComponentInstance(
@@ -1228,6 +1270,9 @@ function baseCreateRenderer(
     }
 
     // resolve props and slots for setup context
+    // VUENEXT-组件渲染 11-设置组件实例(setupComponent)
+    // 创建渲染上下文代理、设置组件实例 render()，最终都是渲染都是执行的 render，所以会在几种方式中返回合适的。
+    // tips: 这部分会在【组件初始化】部分分析
     if (!(__COMPAT__ && compatMountInstance)) {
       if (__DEV__) {
         startMeasure(instance, `init`)
@@ -1252,6 +1297,8 @@ function baseCreateRenderer(
       return
     }
 
+    // VUENEXT-组件渲染 12-设置并运行带副作用的渲染函数(setupRenderEffect)
+    // 响应式更新的核心逻辑
     setupRenderEffect(
       instance,
       initialVNode,
@@ -1303,6 +1350,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 组件副作用渲染
   const setupRenderEffect: SetupRenderEffectFn = (
     instance,
     initialVNode,
@@ -1312,6 +1360,9 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // 创建响应式的副作用渲染函数，这个是 reactivity 包的 effect 函数。
+    // 当数据变化的时候会重新执行 componentUpdateFn 函数，达到更新组件的目的。
+    // tips: 结合【响应式实现原理】理解
     const componentUpdateFn = () => {
       if (!instance.isMounted) {
         let vnodeHook: VNodeHook | null | undefined
@@ -1375,6 +1426,10 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `render`)
           }
+
+          // VUENEXT-组件渲染 12.1-渲染组件生成子树VNode(renderComponentRoot)
+          // 渲染子树的过程就是一个递归的过程了，内部会调用 render 函数，真正调用的是 createVNode 创建 VNode。
+          // 当处理完毕后，继续调用 patch 方法。
           const subTree = (instance.subTree = renderComponentRoot(instance))
           if (__DEV__) {
             endMeasure(instance, `render`)
@@ -1382,6 +1437,10 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `patch`)
           }
+          // VUENEXT-组件渲染 12.2-挂载子树VNode(patch)
+          // 这样就回到了第 [8.1] 步，继续调用 patch 方法，根据类型不同调用走不用的类型处理逻辑。
+          // 根据编写的测试 "<h1>{{hello}}</h1>" 下一步会处理普通元素节点(h1)，接着处理文本节点(hello)。接下来走 13.x 的步骤。
+          // 本质上组件只是虚拟的节点，真实渲染还是要落实到元素和文本节点上。
           patch(
             null,
             subTree,
@@ -1445,6 +1504,9 @@ function baseCreateRenderer(
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
         // OR parent calling processComponent (next: VNode)
+        // VUENEXT-组件更新 1-执行响应式的副作用渲染
+        // 更新组件 vnode 节点、渲染新的子树 vnode、根据新旧子树 vnode 执行 patch 逻辑。
+        // tips: 在理解响应式原理之前只需知道，当数据更新的时候就会执行 componentUpdateFn 函数，此时已经挂载走更新。
         let { next, bu, u, parent, vnode } = instance
         let originNext = next
         let vnodeHook: VNodeHook | null | undefined
@@ -2294,12 +2356,15 @@ function baseCreateRenderer(
     return hostNextSibling((vnode.anchor || vnode.el)!)
   }
 
+  // VUENEXT-组件渲染 7.1-执行渲染器渲染VNode(render(vnode, container))
   const render: RootRenderFunction = (vnode, container, isSVG) => {
     if (vnode == null) {
       if (container._vnode) {
+        // vnode === null 销毁组件，对应了 render 函数的用法。
         unmount(container._vnode, null, null, true)
       }
     } else {
+      // VUENEXT-组件渲染 8-调用创建或者更新组件(patch)
       patch(container._vnode || null, vnode, container, null, null, null, isSVG)
     }
     flushPostFlushCbs()
@@ -2328,8 +2393,10 @@ function baseCreateRenderer(
   }
 
   return {
+    // 导出可在外部单独使用
     render,
     hydrate,
+    // VUENEXT-组件渲染 4-创建实例API(createAppAPI)
     createApp: createAppAPI(render, hydrate)
   }
 }

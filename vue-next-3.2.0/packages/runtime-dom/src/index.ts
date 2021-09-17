@@ -24,6 +24,9 @@ declare module '@vue/reactivity' {
   }
 }
 
+// VUENEXT-组件渲染 2.1-合并渲染配置(rendererOptions)
+// 合并渲染相关的一些配置，比如更新属性的方法，操作 DOM 的方法
+// 如：patchProp、forcePatchProp、nodeOps(insert, remove, createElement, createText, ...)
 const rendererOptions = extend({ patchProp }, nodeOps)
 
 // lazy create the renderer - this makes core renderer logic tree-shakable
@@ -32,6 +35,13 @@ let renderer: Renderer<Element | ShadowRoot> | HydrationRenderer
 
 let enabledHydration = false
 
+// VUENEXT-组件渲染 2-初始渲染器(ensureRenderer(rendererOptions))
+// 这里利用闭包和函数柯里化的技巧，返回 render 和 createApp 函数。
+// 当我们调用 createApp(App), App 的配置对应保留在了闭包当中，所以在调用 app.mount("#app") 的时候不用传 render 函数。
+// -> createApp(App)
+// -> createRenderer(rendererOptions) => {render, createApp: createAppAPI}
+// -> createAppAPI(render, hydrate)) => createApp(rootComponent, rootProps = null)
+// -> createApp(rootComponent, rootProps = null) => app
 function ensureRenderer() {
   return (
     renderer ||
@@ -56,7 +66,9 @@ export const hydrate = ((...args) => {
   ensureHydrationRenderer().hydrate(...args)
 }) as RootHydrateFunction
 
+// VUENEXT-组件渲染 1-入口(createApp)
 export const createApp = ((...args) => {
+  // 创建 app 对象。
   const app = ensureRenderer().createApp(...args)
 
   if (__DEV__) {
@@ -64,12 +76,16 @@ export const createApp = ((...args) => {
     injectCompilerOptionsCheck(app)
   }
 
+  // VUENEXT-组件渲染 5-调用挂载组件(app.mount("#app"))
+  // 重写 mount 方法，目标是支持跨平台渲染。
   const { mount } = app
   app.mount = (containerOrSelector: Element | ShadowRoot | string): any => {
+    // 标准化容器
     const container = normalizeContainer(containerOrSelector)
     if (!container) return
-
     const component = app._component
+
+    // 如组件对象没有定义 render 函数和 template 模板，则取容器的 innerHTML 作为组件模板内容
     if (!isFunction(component) && !component.render && !component.template) {
       // __UNSAFE__
       // Reason: potential execution of JS expressions in in-DOM template.
@@ -91,8 +107,9 @@ export const createApp = ((...args) => {
       }
     }
 
-    // clear content before mounting
+    // 挂载前清空容器内容
     container.innerHTML = ''
+    // 真正的挂载
     const proxy = mount(container, false, container instanceof SVGElement)
     if (container instanceof Element) {
       container.removeAttribute('v-cloak')
