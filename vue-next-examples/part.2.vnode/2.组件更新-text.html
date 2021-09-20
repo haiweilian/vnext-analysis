@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>text</title>
+  </head>
+  <body>
+    <div id="app">
+      <p>This is an app.</p>
+      <hello :msg="msg"></hello>
+      <button @click="toggle">Toggle msg</button>
+    </div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp } = Vue;
+
+      // 5.2-对比组件 vnode 中的 props、chidren、dirs 等属性，来决定子组件是否需要更新
+      const Hello = {
+        // 7-子节点更新的方式 - 2、文本对比不同，则替换为新文本
+        template: `<div class="hello"><span>Hello, {{msg}}</span></div>`,
+        props: ["msg"],
+        mounted() {
+          console.log(1);
+        },
+      };
+
+      const App = {
+        components: {
+          Hello,
+        },
+        data() {
+          return {
+            msg: "Vue",
+          };
+        },
+        mounted() {
+          console.log(2);
+        },
+        methods: {
+          toggle() {
+            this.msg = this.msg === "Vue" ? "World" : "Vue";
+          },
+        },
+      };
+
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

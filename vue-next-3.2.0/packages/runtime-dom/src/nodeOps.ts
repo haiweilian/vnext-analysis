@@ -42,6 +42,7 @@ export const nodeOps: Omit<RendererOptions<Node, Element>, 'patchProp'> = {
 
   // VUENEXT-组件渲染 13.3.1-子节点是纯文本(setElementText)
   setElementText: (el, text) => {
+    debugger
     el.textContent = text
   },
 
