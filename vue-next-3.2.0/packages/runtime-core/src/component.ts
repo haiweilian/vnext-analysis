@@ -480,6 +480,7 @@ export function createComponentInstance(
     // 带有 with 区块的渲染上下文代理
     withProxy: null,
     // 依赖注入相关
+    // VUENEXT-依赖注入 1.在默认情况下，组件实例的 provides 继承它的父组件。
     provides: parent ? parent.provides : Object.create(appContext.provides),
     // 渲染代理的属性访问缓存
     accessCache: null!,

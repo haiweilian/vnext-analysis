@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>reactive</title>
+  </head>
+  <body>
+    <script src="./index.js"></script>
+    <script>
+      const state = reactive({
+        age: 0,
+        count: 0,
+      });
+
+      effect(() => {
+        console.log("age", state.age);
+      });
+
+      effect(() => {
+        console.log("count", state.count);
+      });
+
+      setInterval(() => {
+        state.age++;
+        state.count++;
+      }, 2000);
+    </script>
+  </body>
+</html>

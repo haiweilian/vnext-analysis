@@ -1384,6 +1384,7 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // VUENEXT-响应式实现原理 8.2-设置组件副作用函数(effect)
     // 创建响应式的副作用渲染函数，这个是 reactivity 包的 effect 函数。
     // 当数据变化的时候会重新执行 componentUpdateFn 函数，达到更新组件的目的。
     // tips: 结合【响应式实现原理】理解
@@ -1395,6 +1396,7 @@ function baseCreateRenderer(
 
         effect.allowRecurse = false
         // beforeMount hook
+        // VUENEXT-生命周期 3-执行 beforeMount 钩子函数
         if (bm) {
           invokeArrayFns(bm)
         }
@@ -1480,7 +1482,9 @@ function baseCreateRenderer(
           initialVNode.el = subTree.el
         }
         // mounted hook
+        // VUENEXT-生命周期 4-执行 mounted 钩子函数
         if (m) {
+          // 添加进任务队列中，当 render 的任务队列执行完成，再通过 flushPostFlushCbs 执行 mounted
           queuePostRenderEffect(m, parentSuspense)
         }
         // onVnodeMounted
@@ -1553,6 +1557,7 @@ function baseCreateRenderer(
         // Disallow component effect recursion during pre-lifecycle hooks.
         effect.allowRecurse = false
         // beforeUpdate hook
+        // VUENEXT-生命周期 5-执行 beforeUpdate 钩子函数
         if (bu) {
           invokeArrayFns(bu)
         }
@@ -1614,7 +1619,9 @@ function baseCreateRenderer(
           updateHOCHostEl(instance, nextTree.el)
         }
         // updated hook
+        // VUENEXT-生命周期 6-执行 updated 钩子函数
         if (u) {
+          // 添加进任务队列中，当 render 的任务队列执行完成，再通过 flushPostFlushCbs 执行 updated
           queuePostRenderEffect(u, parentSuspense)
         }
         // onVnodeUpdated
@@ -1645,13 +1652,14 @@ function baseCreateRenderer(
     }
 
     // create reactive effect for rendering
+    // VUENEXT-响应式实现原理 8.2.1-设置组件副作用函数(effect)
     const effect = new ReactiveEffect(
       componentUpdateFn,
+      // VUENEXT-异步任务队列 6-调用示例添加进队列
       () => queueJob(instance.update),
       instance.scope // track it in component's effect scope
     )
-
-    // 每个组件实例上都有 update 方法，用于更新组件
+    // 每个组件实例上都有 update 方法，指向 effect.run 方法
     const update = (instance.update = effect.run.bind(effect) as SchedulerJob)
     update.id = instance.uid
     // allowRecurse
@@ -2385,6 +2393,7 @@ function baseCreateRenderer(
     const { bum, scope, update, subTree, um } = instance
 
     // beforeUnmount hook
+    // VUENEXT-生命周期 7-执行 beforeUnmount 钩子函数
     if (bum) {
       invokeArrayFns(bum)
     }
@@ -2407,6 +2416,7 @@ function baseCreateRenderer(
       unmount(subTree, instance, parentSuspense, doRemove)
     }
     // unmounted hook
+    // VUENEXT-生命周期 8-执行 unmounted 钩子函数
     if (um) {
       queuePostRenderEffect(um, parentSuspense)
     }

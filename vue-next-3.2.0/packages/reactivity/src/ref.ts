@@ -39,6 +39,8 @@ export function trackRefValue(ref: RefBase<any>) {
         key: 'value'
       })
     } else {
+      // VUENEXT-响应式实现原理 10.3.1-依赖存在自身
+      // 直接从 ref 属性中就拿到了它所有的依赖且遍历执行，不需要执行 track 函数一些额外的逻辑
       trackEffects(ref.dep)
     }
   }
@@ -55,6 +57,8 @@ export function triggerRefValue(ref: RefBase<any>, newVal?: any) {
         newValue: newVal
       })
     } else {
+      // VUENEXT-响应式实现原理 10.4.1-依赖存在自身
+      // 直接从 ref 属性中就拿到了它所有的依赖且遍历执行，不需要执行 trigger 函数一些额外的逻辑
       triggerEffects(ref.dep)
     }
   }
@@ -75,6 +79,7 @@ export function isRef(r: any): r is Ref {
   return Boolean(r && r.__v_isRef === true)
 }
 
+// VUENEXT-响应式实现原理 10-ref API
 export function ref<T extends object>(value: T): ToRef<T>
 export function ref<T>(value: T): Ref<UnwrapRef<T>>
 export function ref<T = any>(): Ref<T | undefined>
@@ -100,24 +105,31 @@ class RefImpl<T> {
 
   constructor(value: T, public readonly _shallow = false) {
     this._rawValue = _shallow ? value : toRaw(value)
+    // VUENEXT-响应式实现原理 10.2-convert
+    // 如果是对象则转换一个 reactive 对象。
     this._value = _shallow ? value : convert(value)
   }
 
+  // VUENEXT-响应式实现原理 10.3-依赖收集
   get value() {
     trackRefValue(this)
     return this._value
   }
 
+  // VUENEXT-响应式实现原理 10.4-派发通知(只处理 value 属性的修改)
   set value(newVal) {
     newVal = this._shallow ? newVal : toRaw(newVal)
     if (hasChanged(newVal, this._rawValue)) {
       this._rawValue = newVal
+      // 判断有变化后更新值，判断设置的值。
       this._value = this._shallow ? newVal : convert(newVal)
+      // 派发通知
       triggerRefValue(this, newVal)
     }
   }
 }
 
+// 如果传入的就是一个 ref，那么返回自身即可，处理嵌套 ref 的情况。
 function createRef(rawValue: unknown, shallow = false) {
   if (isRef(rawValue)) {
     return rawValue

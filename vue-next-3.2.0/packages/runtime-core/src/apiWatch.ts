@@ -154,6 +154,7 @@ export function watch<
 ): WatchStopHandle
 
 // implementation
+// VUENEXT-侦听器-1. watch API
 export function watch<T = any, Immediate extends Readonly<boolean> = false>(
   source: T | WatchSource<T>,
   cb: any,
@@ -198,18 +199,25 @@ function doWatch(
     )
   }
 
+  // VUENEXT-侦听器-2.标准化成 getter 函数
+  // 标准化主要是根据 source 的类型，将其变成 标准成 getter 函数
+  // 问题？getter 有什么用呢。 getter 函数的作用就是在调用的时候，触发响应式数据的 get 函数进行依赖搜集。
   const instance = currentInstance
   let getter: () => any
   let forceTrigger = false
   let isMultiSource = false
 
   if (isRef(source)) {
+    // 如果 source 是 ref 对象，则创建一个访问 source.value 的 getter 函数;
     getter = () => source.value
     forceTrigger = !!source._shallow
   } else if (isReactive(source)) {
+    // 如果 source 是 reactive 对象，则创建一个访问 source 的 getter 函数
     getter = () => source
+    // 设置深度监听
     deep = true
   } else if (isArray(source)) {
+    // 如果 source 是数组，循环处理，逻辑同上
     isMultiSource = true
     forceTrigger = source.some(isReactive)
     getter = () =>
@@ -225,12 +233,14 @@ function doWatch(
         }
       })
   } else if (isFunction(source)) {
+    // 如果是一个函数，并且 cd 存在，对于 watch 来说，cb 必定存在。
     if (cb) {
       // getter with cb
       getter = () =>
         callWithErrorHandling(source, instance, ErrorCodes.WATCH_GETTER)
     } else {
       // no cb -> simple effect
+      // watchEffect 的逻辑
       getter = () => {
         if (instance && instance.isUnmounted) {
           return
@@ -266,11 +276,14 @@ function doWatch(
     }
   }
 
+  // VUENEXT-侦听器-3.递归深度监听
+  // 递归深度监听
   if (cb && deep) {
     const baseGetter = getter
     getter = () => traverse(baseGetter())
   }
 
+  // 注册无效回调函数
   let cleanup: () => void
   let onInvalidate: InvalidateCbRegistrator = (fn: () => void) => {
     cleanup = effect.onStop = () => {
@@ -295,7 +308,9 @@ function doWatch(
     return NOOP
   }
 
+  // 旧值初始值
   let oldValue = isMultiSource ? [] : INITIAL_WATCHER_VALUE
+  // 当响应式数据变化的时候或去新值，并执行 cb 函数。
   const job: SchedulerJob = () => {
     if (!effect.active) {
       return
@@ -339,22 +354,29 @@ function doWatch(
 
   let scheduler: EffectScheduler
   if (flush === 'sync') {
+    // 同步执行
     scheduler = job as any // the scheduler function gets called directly
   } else if (flush === 'post') {
+    // VUENEXT-异步任务队列 6-调用示例组件后执行
     scheduler = () => queuePostRenderEffect(job, instance && instance.suspense)
   } else {
     // default: 'pre'
+    // 默认的 watch 就是执行这个。
     scheduler = () => {
       if (!instance || instance.isMounted) {
+        // VUENEXT-异步任务队列 6-调用示例组件前执行
         queuePreFlushCb(job)
       } else {
         // with 'pre' option, the first call must happen before
         // the component is mounted so it is called synchronously.
+        // 同步执行
         job()
       }
     }
   }
 
+  // 创建 effect 副作用函数
+  // 当运行 effect.run 会执行前面的 getter 函数，访问响应式数据做依赖搜集。
   const effect = new ReactiveEffect(getter, scheduler)
 
   if (__DEV__) {
@@ -364,9 +386,11 @@ function doWatch(
 
   // initial run
   if (cb) {
+    // 默认执行
     if (immediate) {
       job()
     } else {
+      // 求旧值
       oldValue = effect.run()
     }
   } else if (flush === 'post') {
@@ -378,6 +402,7 @@ function doWatch(
     effect.run()
   }
 
+  // 返回停止监听函数
   return () => {
     effect.stop()
     if (instance && instance.scope) {
