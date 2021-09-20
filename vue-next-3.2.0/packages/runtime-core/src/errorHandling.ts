@@ -59,6 +59,7 @@ export const ErrorTypeStrings: Record<number | string, string> = {
 
 export type ErrorTypes = LifecycleHooks | ErrorCodes
 
+// 统一的函数执行并捕获错误
 export function callWithErrorHandling(
   fn: Function,
   instance: ComponentInternalInstance | null,

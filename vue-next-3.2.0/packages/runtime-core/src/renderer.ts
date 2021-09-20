@@ -1257,6 +1257,7 @@ function baseCreateRenderer(
       __COMPAT__ && initialVNode.isCompatRoot && initialVNode.component
 
     // VUENEXT-组件渲染 10-创建组件实例对象(createComponentInstance)
+    // VUENEXT-组件初始化 1-创建组件实例对象(createComponentInstance)
     // Vue3 虽然不像 Vue2 那样通过类的方式去实例化组件，但内部也通过对象的方式去创建了当前渲染的组件实例。
     // 返回一个表示组件各种属性的对象。ctx、data、props、attrs、...
     // tips: 这部分会在【组件初始化】部分分析
@@ -1284,6 +1285,7 @@ function baseCreateRenderer(
 
     // resolve props and slots for setup context
     // VUENEXT-组件渲染 11-设置组件实例(setupComponent)
+    // VUENEXT-组件初始化 2-设置组件实例(setupComponent)
     // 创建渲染上下文代理、设置组件实例 render()，最终都是渲染都是执行的 render，所以会在几种方式中返回合适的。
     // tips: 这部分会在【组件初始化】部分分析
     if (!(__COMPAT__ && compatMountInstance)) {
