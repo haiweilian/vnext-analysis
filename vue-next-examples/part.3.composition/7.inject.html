@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>inject</title>
+  </head>
+  <body>
+    <div id="app">
+      <div></div>
+    </div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { provide, inject, createApp, getCurrentInstance } = Vue;
+      const App = {
+        setup() {
+          provide("key", 1);
+          inject("key", 1);
+          const internalInstance = getCurrentInstance();
+          console.log(internalInstance.appContext);
+        },
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

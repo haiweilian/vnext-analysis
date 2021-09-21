@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>lifecycle</title>
+  </head>
+  <body>
+    <div id="app">
+      <label>
+        <input type="checkbox" v-model="checked" />
+        <span>点击触发更新</span>
+      </label>
+    </div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const {
+        createApp,
+        onBeforeMount,
+        onMounted,
+        onBeforeUpdate,
+        onUpdated,
+        onBeforeUnmount,
+        onUnmounted,
+        onRenderTracked,
+        onRenderTriggered,
+        ref,
+        getCurrentInstance,
+      } = Vue;
+
+      const App = {
+        setup() {
+          const internalInstance = getCurrentInstance();
+          console.log(internalInstance.appContext);
+
+          onBeforeMount(() => {
+            console.log("onBeforeMount");
+          });
+          onMounted(() => {
+            console.log("onMounted");
+          });
+
+          onBeforeUpdate(() => {
+            console.log("onBeforeUpdate");
+          });
+          onUpdated(() => {
+            console.log("onUpdated");
+          });
+
+          onBeforeUnmount(() => {
+            console.log("onBeforeUnmount");
+          });
+          onUnmounted(() => {
+            console.log("onUnmounted");
+          });
+
+          onRenderTriggered((e) => {
+            console.log("onRenderTriggered", e);
+          });
+          onRenderTracked((e) => {
+            console.log("onRenderTracked", e);
+          });
+
+          return {
+            checked: ref(false),
+          };
+        },
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>
