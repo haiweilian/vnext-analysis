@@ -1,0 +1,28 @@
+# vue-router-next [![release candidate](https://img.shields.io/npm/v/vue-router/next.svg)](https://www.npmjs.com/package/vue-router/v/next) [![CircleCI](https://circleci.com/gh/vuejs/vue-router-next.svg?style=svg)](https://circleci.com/gh/vuejs/vue-router-next)
+
+This is the repository for Vue Router 4 (for Vue 3)
+
+## Quickstart
+
+- Via CDN: `<script src="https://unpkg.com/vue-router@4"></script>`
+- In-browser playground on [CodeSandbox](https://codesandbox.io/s/vue-router-4-reproduction-hb9lh)
+- Add it to an existing Vue Project:
+  ```bash
+  npm install vue-router@4
+  ```
+
+## Changes from Vue Router 3
+
+Please consult the [Migration Guide](https://next.router.vuejs.org/guide/migration/).
+
+## Contributing
+
+See [Contributing Guide](https://github.com/vuejs/vue-router-next/blob/master/.github/contributing.md).
+
+## Special Thanks
+
+<a href="https://www.browserstack.com">
+  <img src="https://github.com/vuejs/vue-router/raw/dev/assets/browserstack-logo-600x315.png" height="80" title="BrowserStack Logo" alt="BrowserStack Logo" />
+</a>
+
+Special thanks to [BrowserStack](https://www.browserstack.com) for letting the maintainers use their service to debug browser specific issues.
