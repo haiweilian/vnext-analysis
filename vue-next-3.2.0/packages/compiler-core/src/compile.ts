@@ -82,7 +82,11 @@ export function baseCompile(
     onError(createCompilerError(ErrorCodes.X_SCOPE_ID_NOT_SUPPORTED))
   }
 
+  // VUENEXT-编译过程 3-解析 AST
   const ast = isString(template) ? baseParse(template, options) : template
+  console.log('ast', JSON.parse(JSON.stringify(ast)))
+
+  // VUENEXT-编译过程 4-转换 AST
   const [nodeTransforms, directiveTransforms] =
     getBaseTransformPreset(prefixIdentifiers)
   transform(
@@ -100,7 +104,9 @@ export function baseCompile(
       )
     })
   )
+  console.log('transform', JSON.parse(JSON.stringify(ast)))
 
+  // VUENEXT-编译过程 5-生成代码
   return generate(
     ast,
     extend({}, options, {

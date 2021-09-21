@@ -11,6 +11,7 @@
     "VUENEXT-异步任务队列",
     "VUENEXT-生命周期",
     "VUENEXT-依赖注入",
+    "VUENEXT-编译过程",
     "VUENEXT-Props",
     "VUENEXT-Slot",
     "VUENEXT-Directive",
@@ -49,6 +50,9 @@
     },
     "VUENEXT-依赖注入": {
       "background": "#3333ff"
+    },
+    "VUENEXT-编译过程": {
+      "background": "#c5b6d4"
     },
     "VUENEXT-Props": {
       "background": "#006699"

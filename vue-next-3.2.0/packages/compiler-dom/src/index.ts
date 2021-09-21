@@ -37,6 +37,7 @@ export const DOMDirectiveTransforms: Record<string, DirectiveTransform> = {
   show: transformShow
 }
 
+// VUENEXT-编译过程 2-编译函数
 export function compile(
   template: string,
   options: CompilerOptions = {}

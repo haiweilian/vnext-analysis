@@ -889,9 +889,11 @@ export function finishComponentSetup(
             extend(finalCompilerOptions.compatConfig, Component.compatConfig)
           }
         }
+        // VUENEXT-编译过程 1-调用编译器
         // 使用 compile 编译器把 template 编译成 render 函数，
         // compile 的执行后续单独研究，知道它返回一个渲染函数就行，并且 compile 是通过 registerRuntimeCompiler 需要的时候才引入。
         Component.render = compile(template, finalCompilerOptions)
+        console.log('render', Component.render)
         if (__DEV__) {
           endMeasure(instance, `compile`)
         }
