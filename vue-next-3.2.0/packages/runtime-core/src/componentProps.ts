@@ -153,6 +153,7 @@ export function initProps(
 
   instance.propsDefaults = Object.create(null)
 
+  // VUENEXT-Props 2.1-设置 props 的值
   setFullProps(instance, rawProps, props, attrs)
 
   // ensure all declared prop keys are present
@@ -163,12 +164,15 @@ export function initProps(
   }
 
   // validation
+  // VUENEXT-Props 3-验证 props
   if (__DEV__) {
     validateProps(rawProps || {}, props, instance)
   }
 
   if (isStateful) {
-    // stateful
+    // VUENEXT-Props 4-响应式处理
+    // 有状态组件，响应式处理，所以我们能用 watch 监听到 props 的变化
+    // props 是浅响应式不能结构的，会失去响应性
     instance.props = isSSR ? props : shallowReactive(props)
   } else {
     if (!instance.type.props) {
@@ -179,9 +183,11 @@ export function initProps(
       instance.props = props
     }
   }
+  // 赋值 attrs
   instance.attrs = attrs
 }
 
+// updateProps 主要的目标就是把父组件渲染时求得的 props 新值，更新到子组件实例的 instance.props 中
 export function updateProps(
   instance: ComponentInternalInstance,
   rawProps: Data | null,
@@ -212,6 +218,7 @@ export function updateProps(
     if (patchFlag & PatchFlags.PROPS) {
       // Compiler-generated props & no keys change, just set the updated
       // the props.
+      // 只更新动态 props 节点
       const propsToUpdate = instance.vnode.dynamicProps!
       for (let i = 0; i < propsToUpdate.length; i++) {
         let key = propsToUpdate[i]
@@ -253,6 +260,7 @@ export function updateProps(
     }
   } else {
     // full props update.
+    // 全量 props 更新，重新走一遍设置流程
     if (setFullProps(instance, rawProps, props, attrs)) {
       hasAttrsChanged = true
     }
@@ -318,12 +326,14 @@ function setFullProps(
   props: Data,
   attrs: Data
 ) {
+  // 获取标准化的值
   const [options, needCastKeys] = instance.propsOptions
   let hasAttrsChanged = false
   let rawCastValues: Data | undefined
   if (rawProps) {
     for (let key in rawProps) {
       // key, ref are reserved and never passed down
+      // 一些保留的 prop 比如 ref、key 是不会传递的
       if (isReservedProp(key)) {
         continue
       }
@@ -344,6 +354,7 @@ function setFullProps(
       const value = rawProps[key]
       // prop option names are camelized during normalization, so to support
       // kebab -> camel conversion here we need to camelize the key.
+      // 连字符形式的 props 也转成驼峰形式
       let camelKey
       if (options && hasOwn(options, (camelKey = camelize(key)))) {
         if (!needCastKeys || !needCastKeys.includes(camelKey)) {
@@ -371,9 +382,11 @@ function setFullProps(
   }
 
   if (needCastKeys) {
+    // 需要做转换的 props
     const rawCurrentProps = toRaw(props)
     const castValues = rawCastValues || EMPTY_OBJ
     for (let i = 0; i < needCastKeys.length; i++) {
+      // 获取 props 的值
       const key = needCastKeys[i]
       props[key] = resolvePropValue(
         options!,
@@ -399,6 +412,7 @@ function resolvePropValue(
 ) {
   const opt = options[key]
   if (opt != null) {
+    // 默认值处理
     const hasDefault = hasOwn(opt, 'default')
     // default values
     if (hasDefault && value === undefined) {
@@ -423,6 +437,7 @@ function resolvePropValue(
       }
     }
     // boolean casting
+    // 布尔类型转换
     if (opt[BooleanFlags.shouldCast]) {
       if (isAbsent && !hasDefault) {
         value = false
@@ -442,6 +457,7 @@ export function normalizePropsOptions(
   appContext: AppContext,
   asMixin = false
 ): NormalizedPropsOptions {
+  // 用于缓存标准化的结果，有缓存，则直接返回
   const cache = appContext.propsCache
   const cached = cache.get(comp)
   if (cached) {
@@ -449,7 +465,9 @@ export function normalizePropsOptions(
   }
 
   const raw = comp.props
+  // 默认对象
   const normalized: NormalizedPropsOptions[0] = {}
+  // 需要转换的 key，布尔值和带有默认值
   const needCastKeys: NormalizedPropsOptions[1] = []
 
   // apply mixin/extends props
@@ -480,6 +498,13 @@ export function normalizePropsOptions(
     return EMPTY_ARR as any
   }
 
+  // 1、数组形式的 props 定义
+  // 数组的值是一个字符串转换成一个对象，key 为当前值，值为空对象
+  // props: ['name', 'nickName']
+  // props: {
+  //   name: {},
+  //   nickName: {}
+  // }
   if (isArray(raw)) {
     for (let i = 0; i < raw.length; i++) {
       if (__DEV__ && !isString(raw[i])) {
@@ -491,11 +516,13 @@ export function normalizePropsOptions(
       }
     }
   } else if (raw) {
+    // 3、如果是一个对象，值是类型转换成 对象类型的 type
     if (__DEV__ && !isObject(raw)) {
       warn(`invalid props options`, raw)
     }
     for (const key in raw) {
       const normalizedKey = camelize(key)
+      // 验证名称
       if (validatePropName(normalizedKey)) {
         const opt = raw[key]
         const prop: NormalizedProp = (normalized[normalizedKey] =
@@ -507,6 +534,7 @@ export function normalizePropsOptions(
           prop[BooleanFlags.shouldCastTrue] =
             stringIndex < 0 || booleanIndex < stringIndex
           // if the prop needs boolean casting or default value
+          // 布尔类型和有默认值的 prop 都需要转换
           if (booleanIndex > -1 || hasOwn(prop, 'default')) {
             needCastKeys.push(normalizedKey)
           }
@@ -577,6 +605,7 @@ function validateProps(
 /**
  * dev only
  */
+// VUENEXT-Props 3.1-验证 props
 function validateProp(
   name: string,
   value: unknown,
@@ -585,20 +614,24 @@ function validateProp(
 ) {
   const { type, required, validator } = prop
   // required!
+  // 检测 required
   if (required && isAbsent) {
     warn('Missing required prop: "' + name + '"')
     return
   }
   // missing but optional
+  // 虽然没有值但也没有配置 required 跳过
   if (value == null && !prop.required) {
     return
   }
   // type check
+  // 类型检测
   if (type != null && type !== true) {
     let isValid = false
     const types = isArray(type) ? type : [type]
     const expectedTypes = []
     // value is valid as long as one of the specified types match
+    // 只要指定的类型之一匹配，值就有效
     for (let i = 0; i < types.length && !isValid; i++) {
       const { valid, expectedType } = assertType(value, types[i])
       expectedTypes.push(expectedType || '')
@@ -610,6 +643,7 @@ function validateProp(
     }
   }
   // custom validator
+  // 自定义校验器
   if (validator && !validator(value)) {
     warn('Invalid prop: custom validator check failed for prop "' + name + '".')
   }

@@ -1549,6 +1549,7 @@ function baseCreateRenderer(
         // 关联【组件更新 5.2】：next 表示新的组件 vnode，那么它是那来的呢，为什么又需要判断它呢。
         if (next) {
           next.el = vnode.el
+          // VUENEXT-Props 5-更新子组件的属性
           updateComponentPreRender(instance, next, optimized)
         } else {
           next = vnode
@@ -1694,6 +1695,7 @@ function baseCreateRenderer(
     instance.vnode = nextVNode
     // 清空 next 属性，为了下一次重新渲染准备
     instance.next = null
+    // VUENEXT-Props 5.1-更新 props
     // 更新 props
     updateProps(instance, nextVNode.props, prevProps, optimized)
     // 更新 插槽

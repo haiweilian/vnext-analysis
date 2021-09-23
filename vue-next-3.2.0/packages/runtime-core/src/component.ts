@@ -494,6 +494,7 @@ export function createComponentInstance(
     directives: null,
 
     // resolved props and emits options
+    // VUENEXT-Props 1-标准化 props 配置
     // 标准化 props 就是把各种类型的写法转化为一致，方便后续处理。
     propsOptions: normalizePropsOptions(type, appContext),
     emitsOptions: normalizeEmitsOptions(type, appContext),
@@ -632,6 +633,7 @@ export function setupComponent(
   // VUENEXT-组件初始化 2.1-初始化 props、slots
   const { props, children } = instance.vnode
   const isStateful = isStatefulComponent(instance)
+  // VUENEXT-Props 2-初始化 props
   initProps(instance, props, isStateful, isSSR)
   initSlots(instance, children)
 
