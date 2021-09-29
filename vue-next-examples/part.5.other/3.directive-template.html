@@ -4,32 +4,28 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>compiler</title>
+    <title>directive-template</title>
   </head>
   <body>
-    <h4>打开控制台查看每个编译阶段的结果</h4>
-    <h4>
-      <a href="https://vue-next-template-explorer.netlify.app/" target="_blank">
-        在线模板浏览工具
-      </a>
-    </h4>
+    <a href="https://vue-next-template-explorer.netlify.app/" target="_blank">
+      在线模板浏览工具
+    </a>
     <div id="app">
-      <div>
-        <h1>{{hello}}</h1>
-      </div>
+      <input type="text" v-focus.number="{size: 1}" />
     </div>
-
     <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
     <script>
       const { createApp } = Vue;
       const App = {
-        data() {
-          return {
-            hello: "hello",
-          };
-        },
+        setup(props, ctx) {},
       };
       const app = createApp(App);
+      app.directive("focus", {
+        mounted(el, binding) {
+          console.log(binding);
+          el.focus();
+        },
+      });
       app.mount("#app");
     </script>
   </body>

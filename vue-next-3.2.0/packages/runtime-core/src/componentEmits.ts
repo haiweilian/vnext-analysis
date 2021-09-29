@@ -64,6 +64,7 @@ export type EmitFn<
       }[Event]
     >
 
+// VUENEXT-VModel 2-自定义事件派发
 export function emit(
   instance: ComponentInternalInstance,
   event: string,

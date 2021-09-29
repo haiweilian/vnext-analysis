@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>v-model-template</title>
+  </head>
+  <body>
+    <div id="app">
+      <input type="text" v-model="text" />
+    </div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp, ref, h } = Vue;
+      const App = {
+        setup(props, ctx) {
+          const text = ref("text");
+          return () => [
+            h("input", {
+              type: "text",
+              value: text.value,
+              onInput: (event) => {
+                text.value = event.target.value;
+                console.log(event);
+              },
+            }),
+            h("span", null, text.value),
+          ];
+        },
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

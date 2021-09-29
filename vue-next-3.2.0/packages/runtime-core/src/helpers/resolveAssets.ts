@@ -43,6 +43,8 @@ export function resolveDynamicComponent(component: unknown): VNodeTypes {
 /**
  * @private
  */
+// VUENEXT-Directive 2-获取指令对象
+// 通过 directive 组件保存后，通过 resolveDirective 获取保存的指令对象
 export function resolveDirective(name: string): Directive | undefined {
   return resolveAsset(DIRECTIVES, name)
 }
@@ -74,12 +76,15 @@ function resolveAsset(
 // overload 3: filters (compat only)
 function resolveAsset(type: typeof FILTERS, name: string): Function | undefined
 // implementation
+// VUENEXT-Directive 2.1-获取配置对象
+// 获取对应的配置，组件、指令、过滤器同理。
 function resolveAsset(
   type: AssetTypes,
   name: string,
   warnMissing = true,
   maybeSelfReference = false
 ) {
+  // 获取当前渲染实例
   const instance = currentRenderingInstance || currentInstance
   if (instance) {
     const Component = instance.type
@@ -100,8 +105,10 @@ function resolveAsset(
     const res =
       // local registration
       // check instance[type] first which is resolved for options API
+      // 获取局部注册
       resolve(instance[type] || (Component as ComponentOptions)[type], name) ||
       // global registration
+      // 获取全局注册
       resolve(instance.appContext[type], name)
 
     if (!res && maybeSelfReference) {
@@ -122,11 +129,15 @@ function resolveAsset(
   }
 }
 
+// VUENEXT-Directive 2.2-获取配置对象规则
 function resolve(registry: Record<string, any> | undefined, name: string) {
   return (
     registry &&
+    // 1、根据名字获取
     (registry[name] ||
+      // 2、驼峰格式 camelize
       registry[camelize(name)] ||
+      // 3、大驼峰格式 capitalize
       registry[capitalize(camelize(name))])
   )
 }

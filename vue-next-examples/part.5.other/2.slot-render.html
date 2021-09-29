@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>slot-render</title>
+  </head>
+  <body>
+    <a href="./2.slot-template.html">template 方式</a>
+    <div id="app"></div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp, createVNode } = Vue;
+      const Hello = {
+        setup(props, ctx) {
+          console.log(ctx);
+          return () =>
+            createVNode("div", null, [
+              ctx.slots.header({ text: "header" }),
+              ctx.slots.default({ text: "default" }),
+              ctx.slots.footer({ text: "footer" }),
+            ]);
+        },
+      };
+      const App = {
+        setup(props, ctx) {
+          return () =>
+            createVNode(Hello, null, {
+              // prop 来自子组件的调用传入的
+              header: (prop) => createVNode("header", null, prop.text),
+              default: (prop) => createVNode("main", null, prop.text),
+              footer: (prop) => createVNode("footer", null, prop.text),
+            });
+        },
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

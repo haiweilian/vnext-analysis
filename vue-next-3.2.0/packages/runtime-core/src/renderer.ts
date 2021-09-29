@@ -700,6 +700,7 @@ function baseCreateRenderer(
       }
 
       if (dirs) {
+        // VUENEXT-Directive 4-执行指令钩子(created)
         invokeDirectiveHook(vnode, null, parentComponent, 'created')
       }
 
@@ -751,6 +752,7 @@ function baseCreateRenderer(
       })
     }
     if (dirs) {
+      // VUENEXT-Directive 4-执行指令钩子(beforeMount)
       invokeDirectiveHook(vnode, null, parentComponent, 'beforeMount')
     }
     // #1583 For inside suspense + suspense not resolved case, enter hook should call when suspense resolved
@@ -773,6 +775,7 @@ function baseCreateRenderer(
       queuePostRenderEffect(() => {
         vnodeHook && invokeVNodeHook(vnodeHook, parentComponent, vnode)
         needCallTransitionHooks && transition!.enter(el)
+        // VUENEXT-Directive 4.2-执行指令钩子(mounted)
         dirs && invokeDirectiveHook(vnode, null, parentComponent, 'mounted')
       }, parentSuspense)
     }
@@ -870,6 +873,7 @@ function baseCreateRenderer(
       invokeVNodeHook(vnodeHook, parentComponent, n2, n1)
     }
     if (dirs) {
+      // VUENEXT-Directive 4.3-执行指令钩子(beforeUpdate)
       invokeDirectiveHook(n2, n1, parentComponent, 'beforeUpdate')
     }
 
@@ -998,6 +1002,7 @@ function baseCreateRenderer(
     if ((vnodeHook = newProps.onVnodeUpdated) || dirs) {
       queuePostRenderEffect(() => {
         vnodeHook && invokeVNodeHook(vnodeHook, parentComponent, n2, n1)
+        // VUENEXT-Directive 4.4-执行指令钩子(updated)
         dirs && invokeDirectiveHook(n2, n1, parentComponent, 'updated')
       }, parentSuspense)
     }
@@ -2286,6 +2291,7 @@ function baseCreateRenderer(
       }
 
       if (shouldInvokeDirs) {
+        // VUENEXT-Directive 4.5-执行指令钩子(beforeUnmount)
         invokeDirectiveHook(vnode, null, parentComponent, 'beforeUnmount')
       }
 
@@ -2330,6 +2336,7 @@ function baseCreateRenderer(
       queuePostRenderEffect(() => {
         vnodeHook && invokeVNodeHook(vnodeHook, parentComponent, vnode)
         shouldInvokeDirs &&
+          // VUENEXT-Directive 4.6-执行指令钩子(unmounted)
           invokeDirectiveHook(vnode, null, parentComponent, 'unmounted')
       }, parentSuspense)
     }

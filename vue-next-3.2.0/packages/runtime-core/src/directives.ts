@@ -63,6 +63,7 @@ export type Directive<T = any, V = any> =
 
 export type DirectiveModifiers = Record<string, boolean>
 
+// 是否和内部指令冲突
 const isBuiltInDirective = /*#__PURE__*/ makeMap(
   'bind,cloak,else-if,else,for,html,if,model,on,once,pre,show,slot,text'
 )
@@ -84,6 +85,7 @@ export type DirectiveArguments = Array<
 /**
  * Adds directives to a VNode.
  */
+// VUENEXT-Directive 3-应用指令
 export function withDirectives<T extends VNode>(
   vnode: T,
   directives: DirectiveArguments
@@ -93,10 +95,13 @@ export function withDirectives<T extends VNode>(
     __DEV__ && warn(`withDirectives can only be used inside render functions.`)
     return vnode
   }
+
   const instance = internalInstance.proxy
+  // 处理所有的指令，保存在 dirs 里。
   const bindings: DirectiveBinding[] = vnode.dirs || (vnode.dirs = [])
   for (let i = 0; i < directives.length; i++) {
     let [dir, value, arg, modifiers = EMPTY_OBJ] = directives[i]
+    // 如果是一个函数是简写，直接放到 mounted updated 生命周期里，只在挂载和更新时调用。
     if (isFunction(dir)) {
       dir = {
         mounted: dir,
@@ -109,32 +114,45 @@ export function withDirectives<T extends VNode>(
     bindings.push({
       dir,
       instance,
+      // 新值
       value,
+      // 旧值
       oldValue: void 0,
+      // 参数
       arg,
+      // 修饰符
       modifiers
     })
   }
   return vnode
 }
 
+// VUENEXT-Directive 4.1-执行指令钩子
+// 遍历所有的指令，并获取对应的钩子函数执行。
 export function invokeDirectiveHook(
+  // 新组件
   vnode: VNode,
+  // 旧组件
   prevVNode: VNode | null,
+  // 组件实例
   instance: ComponentInternalInstance | null,
+  // 钩子名称
   name: keyof ObjectDirective
 ) {
   const bindings = vnode.dirs!
   const oldBindings = prevVNode && prevVNode.dirs!
+  // 遍历指令数组
   for (let i = 0; i < bindings.length; i++) {
     const binding = bindings[i]
     if (oldBindings) {
       binding.oldValue = oldBindings[i].value
     }
+    // 获取对应的钩子函数
     let hook = binding.dir[name] as DirectiveHook | DirectiveHook[] | undefined
     if (__COMPAT__ && !hook) {
       hook = mapCompatDirectiveHook(name, binding.dir, instance)
     }
+    // 执行对应的钩子函数
     if (hook) {
       // disable tracking inside all lifecycle hooks
       // since they can potentially be called inside effects.

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>slot-template</title>
+  </head>
+  <body>
+    <a href="./2.slot-render.html">
+      render 方式，与 template 并无区别，可以把项目模板粘贴到 =>
+    </a>
+    <a href="https://vue-next-template-explorer.netlify.app/" target="_blank">
+      在线模板浏览工具
+    </a>
+    <div id="app"></div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp, createVNode } = Vue;
+      const Hello = {
+        template: `
+          <div>
+            <slot name="header" text="header"></slot>
+            <slot name="default" text="default"></slot>
+            <slot name="footer" text="footer"></slot>
+          </div>
+        `,
+        setup(props, ctx) {
+          console.log(ctx);
+        },
+      };
+      const App = {
+        template: `
+          <Hello>
+            <template v-slot:header="prop">
+              <header>{{prop.text}}</header>
+            </template>
+            <template v-slot:default="prop">
+              <main>{{prop.text}}</main>
+            </template>
+            <template v-slot:footer="prop">
+              <footer>{{prop.text}}</footer>
+            </template>
+          </Hello>
+        `,
+        components: {
+          Hello,
+        },
+        setup(props, ctx) {},
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

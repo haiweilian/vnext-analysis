@@ -260,17 +260,26 @@ export function createAppAPI<HostElement>(
         return app
       },
 
+      // VUENEXT-Directive 1-指令全局注册
       directive(name: string, directive?: Directive) {
         if (__DEV__) {
+          // VUENEXT-Directive 1.1-验证指令名称
+          // 验证是否和内部指令冲突 bind,cloak,else-if,else,for,html,if,model,on,once,pre,show,slot,text
           validateDirectiveName(name)
         }
 
+        // 没有第二个参数，则获取对应的指令对象
         if (!directive) {
           return context.directives[name] as any
         }
+
+        // 重复注册的警告
         if (__DEV__ && context.directives[name]) {
           warn(`Directive "${name}" has already been registered in target app.`)
         }
+
+        // 保存到指令对象中
+        // 全局注册和局部注册的区别是，一个保存在 appContext 中，一个保存在组件对象的定义中。
         context.directives[name] = directive
         return app
       },

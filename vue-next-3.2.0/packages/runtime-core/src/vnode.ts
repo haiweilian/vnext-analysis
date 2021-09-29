@@ -432,6 +432,7 @@ function createBaseVNode(
 
   // 2、标准化子节点，把不同数据类型的 children 转成数组或者文本类型。
   if (needFullChildrenNormalization) {
+    // VUENEXT-Slot 1-标准化子节点
     normalizeChildren(vnode, children)
     // normalize suspense children
     if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
@@ -747,6 +748,7 @@ export function normalizeChildren(vnode: VNode, children: unknown) {
       }
       return
     } else {
+      // slot 类型
       type = ShapeFlags.SLOTS_CHILDREN
       const slotFlag = (children as RawSlots)._
       if (!slotFlag && !(InternalObjectKey in children!)) {
@@ -767,9 +769,12 @@ export function normalizeChildren(vnode: VNode, children: unknown) {
       }
     }
   } else if (isFunction(children)) {
+    // slot 类型
+    // 函数类型转成 default
     children = { default: children, _ctx: currentRenderingInstance }
     type = ShapeFlags.SLOTS_CHILDREN
   } else {
+    // 字符串类型
     children = String(children)
     // force teleport children to array so it can be moved around
     if (shapeFlag & ShapeFlags.TELEPORT) {

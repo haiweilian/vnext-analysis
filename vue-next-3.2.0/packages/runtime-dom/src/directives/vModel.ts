@@ -44,21 +44,38 @@ type ModelDirective<T> = ObjectDirective<T & { _assign: AssignerFn }>
 
 // We are exporting the v-model runtime directly as vnode hooks so that it can
 // be tree-shaken in case v-model is never used.
+// VUENEXT-VModel 1-原生表单VModel内部配置(input)
+// 参考模板编译后的结果，根据真实的表单类型调用不同的指令方法
+// export function render(_ctx, _cache, $props, $setup, $data, $options) {
+//   return _withDirectives((_openBlock(), _createElementBlock("input", {
+//     type: "text",
+//     "onUpdate:modelValue": $event => ((_ctx.text) = $event)
+//   }, null, 8 /* PROPS */, ["onUpdate:modelValue"])), [
+//     [_vModelText, _ctx.text]
+//   ])
+// }
 export const vModelText: ModelDirective<
   HTMLInputElement | HTMLTextAreaElement
 > = {
   created(el, { modifiers: { lazy, trim, number } }, vnode) {
+    // 获取 onUpdate:modelValue 复制给 el._assign
     el._assign = getModelAssigner(vnode)
     const castToNumber =
       number || (vnode.props && vnode.props.type === 'number')
+    // 监听表单事件，lazy 修饰符
     addEventListener(el, lazy ? 'change' : 'input', e => {
+      // 排除中文输入法的触发
+      // https://developer.mozilla.org/zh-CN/docs/Web/API/Element/compositionstart_event
       if ((e.target as any).composing) return
       let domValue: string | number = el.value
+      // trim 修饰符
       if (trim) {
         domValue = domValue.trim()
       } else if (castToNumber) {
+        // number 修饰符
         domValue = toNumber(domValue)
       }
+      // 执行 onUpdate:modelValue
       el._assign(domValue)
     })
     if (trim) {
@@ -77,9 +94,11 @@ export const vModelText: ModelDirective<
     }
   },
   // set value on mounted so it's after min/max for type="range"
+  // 挂载完成复制默认值
   mounted(el, { value }) {
     el.value = value == null ? '' : value
   },
+  // 更新之前
   beforeUpdate(el, { value, modifiers: { lazy, trim, number } }, vnode) {
     el._assign = getModelAssigner(vnode)
     // avoid clearing unresolved text. #2302
@@ -102,6 +121,7 @@ export const vModelText: ModelDirective<
   }
 }
 
+// VUENEXT-VModel 1.2-原生表单VModel内部配置(checkbox)
 export const vModelCheckbox: ModelDirective<HTMLInputElement> = {
   // #4096 array checkboxes need to be deep traversed
   deep: true,
@@ -160,6 +180,7 @@ function setChecked(
   }
 }
 
+// VUENEXT-VModel 1.3-原生表单VModel内部配置(radio)
 export const vModelRadio: ModelDirective<HTMLInputElement> = {
   created(el, { value }, vnode) {
     el.checked = looseEqual(value, vnode.props!.value)
@@ -176,6 +197,7 @@ export const vModelRadio: ModelDirective<HTMLInputElement> = {
   }
 }
 
+// VUENEXT-VModel 1.4-原生表单VModel内部配置(select)
 export const vModelSelect: ModelDirective<HTMLSelectElement> = {
   // <select multiple> value need to be deep traversed
   deep: true,

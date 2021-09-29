@@ -88,8 +88,11 @@ export function withCtx(
     if (renderFnWithContext._d) {
       setBlockTracking(-1)
     }
+    // 设置当前上下文
     const prevInstance = setCurrentRenderingInstance(ctx)
+    // 执行函数
     const res = fn(...args)
+    // 回复当前上下文
     setCurrentRenderingInstance(prevInstance)
     if (renderFnWithContext._d) {
       setBlockTracking(1)

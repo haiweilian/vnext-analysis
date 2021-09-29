@@ -635,6 +635,7 @@ export function setupComponent(
   const isStateful = isStatefulComponent(instance)
   // VUENEXT-Props 2-初始化 props
   initProps(instance, props, isStateful, isSSR)
+  // VUENEXT-Slot 2-初始化插槽
   initSlots(instance, children)
 
   // VUENEXT-组件初始化 2.2-设置有状态的组件实例(setupStatefulComponent)
