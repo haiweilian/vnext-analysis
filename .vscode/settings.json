@@ -17,8 +17,7 @@
     "VUENEXT-Directive",
     "VUENEXT-VModel",
     "VUENEXT-Teleport",
-    "VUENEXT-KeepAlive",
-    "VUENEXT-Transition"
+    "VUENEXT-KeepAlive"
   ],
   "todo-tree.highlights.customHighlight": {
     "VUETODO": {
