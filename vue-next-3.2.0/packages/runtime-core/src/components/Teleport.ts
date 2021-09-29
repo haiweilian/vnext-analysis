@@ -62,6 +62,7 @@ const resolveTarget = <T = RendererElement>(
   }
 }
 
+// VUENEXT-Teleport 1-Teleport 定义
 export const TeleportImpl = {
   __isTeleport: true,
   process(
@@ -94,7 +95,10 @@ export const TeleportImpl = {
     }
 
     if (n1 == null) {
+      // VUENEXT-Teleport 2-Teleport 组件创建
+      // n1 === null 创建逻辑
       // insert anchors in the main view
+      // 1、在主视图里插入注释节点或者空白文本节点（原始位置）
       const placeholder = (n2.el = __DEV__
         ? createComment('teleport start')
         : createText(''))
@@ -103,6 +107,8 @@ export const TeleportImpl = {
         : createText(''))
       insert(placeholder, container, anchor)
       insert(mainAnchor, container, anchor)
+
+      // 2、通过 querySelector 获取目标移动的 DOM 节点，并插入空白节点（目标位置）
       const target = (n2.target = resolveTarget(n2.props, querySelector))
       const targetAnchor = (n2.targetAnchor = createText(''))
       if (target) {
@@ -130,22 +136,29 @@ export const TeleportImpl = {
         }
       }
 
+      // 3、插入子节点
       if (disabled) {
+        // disabled 情况就挂载在-原始位置
         mount(container, mainAnchor)
       } else if (target) {
+        // 反之就挂载在 - 目标位置
         mount(target, targetAnchor)
       }
     } else {
       // update content
+      // VUENEXT-Teleport 3-Teleport 组件更新
+      // 判断组件的 disabled 属性 和 to 属性
       n2.el = n1.el
       const mainAnchor = (n2.anchor = n1.anchor)!
       const target = (n2.target = n1.target)!
       const targetAnchor = (n2.targetAnchor = n1.targetAnchor)!
+      // 1、之前是不是 disabled 状态
       const wasDisabled = isTeleportDisabled(n1.props)
       const currentContainer = wasDisabled ? container : target
       const currentAnchor = wasDisabled ? mainAnchor : targetAnchor
       isSVG = isSVG || isTargetSVG(target)
 
+      // 2、更新子节点
       if (dynamicChildren) {
         // fast path when the teleport happens to be a block root
         patchBlockChildren(
@@ -175,6 +188,7 @@ export const TeleportImpl = {
         )
       }
 
+      // 3、如果更新时时禁用状态，之前不是禁用状态，移动到-原始位置
       if (disabled) {
         if (!wasDisabled) {
           // enabled -> disabled
@@ -189,6 +203,7 @@ export const TeleportImpl = {
         }
       } else {
         // target changed
+        // 4、如果目标位置改变，移动到新的目标位置。
         if ((n2.props && n2.props.to) !== (n1.props && n1.props.to)) {
           const nextTarget = (n2.target = resolveTarget(
             n2.props,
@@ -212,6 +227,7 @@ export const TeleportImpl = {
         } else if (wasDisabled) {
           // disabled -> enabled
           // move into teleport target
+          // 5、反之移动到移动到目标位置
           moveTeleport(
             n2,
             target,
@@ -232,6 +248,7 @@ export const TeleportImpl = {
     { um: unmount, o: { remove: hostRemove } }: RendererInternals,
     doRemove: Boolean
   ) {
+    // VUENEXT-Teleport 4.1-Teleport 组件移除
     const { shapeFlag, children, anchor, targetAnchor, target, props } = vnode
 
     if (target) {
@@ -239,6 +256,7 @@ export const TeleportImpl = {
     }
 
     // an unmounted teleport should always remove its children if not disabled
+    // 卸载子组件，并删除锚点
     if (doRemove || !isTeleportDisabled(props)) {
       hostRemove(anchor!)
       if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {

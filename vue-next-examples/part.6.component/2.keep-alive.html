@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>keep-alive</title>
+  </head>
+  <body>
+    <div id="app">
+      <keep-alive>
+        <comp-a v-if="flag"></comp-a>
+        <comp-b v-else></comp-b>
+      </keep-alive>
+      <button @click="flag=!flag">toggle</button>
+    </div>
+    <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
+    <script>
+      const { createApp } = Vue;
+      const CompA = {
+        template: `<input />`,
+        activated() {
+          console.log("CompA");
+        },
+        deactivated() {
+          console.log("CompA");
+        },
+      };
+
+      const CompB = {
+        template: `<input />`,
+        activated() {
+          console.log("CompB");
+        },
+        deactivated() {
+          console.log("CompB");
+        },
+      };
+
+      const App = {
+        components: {
+          CompA,
+          CompB,
+        },
+        data() {
+          return {
+            flag: false,
+          };
+        },
+      };
+      const app = createApp(App);
+      app.mount("#app");
+    </script>
+  </body>
+</html>

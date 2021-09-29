@@ -466,6 +466,7 @@ function baseCreateRenderer(
           )
         } else if (shapeFlag & ShapeFlags.TELEPORT) {
           // 处理 TELEPORT
+          // VUENEXT-Teleport 1.1-Teleport 执行
           ;(type as typeof TeleportImpl).process(
             n1 as TeleportVNode,
             n2 as TeleportVNode,
@@ -1220,6 +1221,8 @@ function baseCreateRenderer(
     n2.slotScopeIds = slotScopeIds
     // 旧vnode == null
     if (n1 == null) {
+      // VUENEXT-KeepAlive 4-KeepAlive 组件激活
+      // 在第一次渲染的时候设置为 COMPONENT_KEPT_ALIVE
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
           n2,
@@ -2271,6 +2274,7 @@ function baseCreateRenderer(
     }
 
     if (shapeFlag & ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE) {
+      // VUENEXT-KeepAlive 5-KeepAlive 组件失活
       ;(parentComponent!.ctx as KeepAliveContext).deactivate(vnode)
       return
     }
@@ -2296,6 +2300,8 @@ function baseCreateRenderer(
       }
 
       if (shapeFlag & ShapeFlags.TELEPORT) {
+        // VUENEXT-Teleport 4-Teleport 组件移除
+        // 判断组件类型调用组件上remove方法
         ;(vnode.type as typeof TeleportImpl).remove(
           vnode,
           parentComponent,

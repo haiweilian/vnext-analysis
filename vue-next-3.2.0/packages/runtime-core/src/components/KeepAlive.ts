@@ -65,6 +65,7 @@ export interface KeepAliveContext extends ComponentRenderContext {
 export const isKeepAlive = (vnode: VNode): boolean =>
   (vnode.type as any).__isKeepAlive
 
+// VUENEXT-KeepAlive 1-KeepAlive 组件定义
 const KeepAliveImpl: ComponentOptions = {
   name: `KeepAlive`,
 
@@ -94,7 +95,9 @@ const KeepAliveImpl: ComponentOptions = {
       return slots.default
     }
 
+    // 保存缓存的组件
     const cache: Cache = new Map()
+    // 保存缓存的组件 key
     const keys: Keys = new Set()
     let current: VNode | null = null
 
@@ -114,10 +117,12 @@ const KeepAliveImpl: ComponentOptions = {
     } = sharedContext
     const storageContainer = createElement('div')
 
+    // VUENEXT-KeepAlive 4.1-KeepAlive 组件激活-缓存的组件激活
     sharedContext.activate = (vnode, container, anchor, isSVG, optimized) => {
       const instance = vnode.component!
       move(vnode, container, anchor, MoveType.ENTER, parentSuspense)
       // in case props have changed
+      // 1、更新组件
       patch(
         instance.vnode,
         vnode,
@@ -132,6 +137,7 @@ const KeepAliveImpl: ComponentOptions = {
       queuePostRenderEffect(() => {
         instance.isDeactivated = false
         if (instance.a) {
+          // 2、执行 activated 组件钩子
           invokeArrayFns(instance.a)
         }
         const vnodeHook = vnode.props && vnode.props.onVnodeMounted
@@ -146,11 +152,14 @@ const KeepAliveImpl: ComponentOptions = {
       }
     }
 
+    // VUENEXT-KeepAlive 5.1-KeepAlive 组件失活-缓存的组件失活
     sharedContext.deactivate = (vnode: VNode) => {
       const instance = vnode.component!
+      // 这里只是移除了 DOM，并没有真正意义上的执行子组件的整套卸载流程。
       move(vnode, storageContainer, null, MoveType.LEAVE, parentSuspense)
       queuePostRenderEffect(() => {
         if (instance.da) {
+          // 执行 deactivated 组件钩子
           invokeArrayFns(instance.da)
         }
         const vnodeHook = vnode.props && vnode.props.onVnodeUnmounted
@@ -172,6 +181,7 @@ const KeepAliveImpl: ComponentOptions = {
       _unmount(vnode, instance, parentSuspense)
     }
 
+    // 过滤不符合规则的缓存
     function pruneCache(filter?: (name: string) => boolean) {
       cache.forEach((vnode, key) => {
         const name = getComponentName(vnode.type as ConcreteComponent)
@@ -181,6 +191,7 @@ const KeepAliveImpl: ComponentOptions = {
       })
     }
 
+    // 根据 key 卸载组件、并删除缓存中的数据。
     function pruneCacheEntry(key: CacheKey) {
       const cached = cache.get(key) as VNode
       if (!current || cached.type !== current.type) {
@@ -195,6 +206,8 @@ const KeepAliveImpl: ComponentOptions = {
     }
 
     // prune cache on include/exclude prop change
+    // VUENEXT-KeepAlive 6-KeepAlive 监听 Props
+    // 当 include 和 exclude 变化的时候，过滤不符合规则的缓存
     watch(
       () => [props.include, props.exclude],
       ([include, exclude]) => {
@@ -206,13 +219,16 @@ const KeepAliveImpl: ComponentOptions = {
     )
 
     // cache sub tree after render
+    // VUENEXT-KeepAlive 3-KeepAlive 缓存的设计
     let pendingCacheKey: CacheKey | null = null
     const cacheSubtree = () => {
       // fix #1621, the pendingCacheKey could be 0
       if (pendingCacheKey != null) {
+        // 缓存渲染后的子节点
         cache.set(pendingCacheKey, getInnerChild(instance.subTree))
       }
     }
+    // 在每次更新完毕后缓存新的子节点
     onMounted(cacheSubtree)
     onUpdated(cacheSubtree)
 
@@ -233,12 +249,14 @@ const KeepAliveImpl: ComponentOptions = {
     })
 
     return () => {
+      // VUENEXT-KeepAlive 2-KeepAlive 组件的渲染
       pendingCacheKey = null
 
       if (!slots.default) {
         return null
       }
 
+      // 1、KeepAlive 只能渲染单个子节点(多个抛出警告)，只渲染第一个子节点。
       const children = slots.default()
       const rawVNode = children[0]
       if (children.length > 1) {
@@ -267,8 +285,8 @@ const KeepAliveImpl: ComponentOptions = {
           : comp
       )
 
+      // 2、判断组件名称是否符合 include、exclude 规则
       const { include, exclude, max } = props
-
       if (
         (include && (!name || !matches(include, name))) ||
         (exclude && name && matches(exclude, name))
@@ -277,6 +295,8 @@ const KeepAliveImpl: ComponentOptions = {
         return rawVNode
       }
 
+      // VUENEXT-KeepAlive 3.1-KeepAlive 获取缓存的组件
+      // 如果指定了 key，就以传入的 key 当做标识缓存，反之使用 type 当做 key
       const key = vnode.key == null ? comp : vnode.key
       const cachedVNode = cache.get(key)
 
@@ -292,10 +312,14 @@ const KeepAliveImpl: ComponentOptions = {
       // that is mounted. Instead of caching it directly, we store the pending
       // key and cache `instance.subTree` (the normalized vnode) in
       // beforeMount/beforeUpdate hooks.
+      //
       pendingCacheKey = key
 
+      // VUENEXT-KeepAlive 3.2-KeepAlive 缓存策略
+      // 1、如果查询到缓存
       if (cachedVNode) {
         // copy over mounted state
+        // 复制缓存的 vnode 到 新 vnode
         vnode.el = cachedVNode.el
         vnode.component = cachedVNode.component
         if (vnode.transition) {
@@ -303,13 +327,19 @@ const KeepAliveImpl: ComponentOptions = {
           setTransitionHooks(vnode, vnode.transition!)
         }
         // avoid vnode being mounted as fresh
+        // 改变 shapeFlag = ShapeFlags.COMPONENT_KEPT_ALIVE 避免 vnode 节点作为新节点被挂载，也作为组件渲染时的判断
         vnode.shapeFlag |= ShapeFlags.COMPONENT_KEPT_ALIVE
         // make this key the freshest
+        // 把这个key 从 key 集合中删除再添加，保持 key 的活跃度。
+        // key = 1 => [1, 2] => [2] => [2, 1]
         keys.delete(key)
         keys.add(key)
       } else {
+        // 2、如果查询不到缓存，则添加一个缓存
         keys.add(key)
         // prune oldest entry
+        // 如果缓存个数大于最大的缓存数(默认10)，则删除最久不用的 key，符合 LRU 思想。
+        // 最久是 key 集合中的第一个，因为每次命中缓存都会从新添加到后面。
         if (max && keys.size > parseInt(max as string, 10)) {
           pruneCacheEntry(keys.values().next().value)
         }
