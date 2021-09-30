@@ -16,20 +16,20 @@
     <script src="../../../vue-next-3.2.0/packages/vue/dist/vue.global.js"></script>
     <script>
       const { createApp } = Vue;
+      const oldVal = ["a", "b", "c", "d", "e"];
+      const newVal = ["a", "b", "f", "d", "e"];
       const App = {
         data() {
           return {
             flag: true,
-            list: ["a", "b", "c", "d", "e"],
+            list: oldVal,
           };
         },
         methods: {
           toggle() {
             this.flag = !this.flag;
             // 8-完整的DIFF算法
-            this.list = this.flag
-              ? ["a", "b", "c", "d", "e"]
-              : ["a", "b", "f", "d", "e"];
+            this.list = this.flag ? oldVal : newVal;
           },
         },
       };
