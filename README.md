@@ -39,3 +39,5 @@
 ### 参考资料
 
 感谢所有社区优秀资源的贡献者们。
+
+<https://ustbhuangyi.github.io/vue-analysis/v3/new/>
