@@ -4,6 +4,7 @@ import { warn } from './warning'
 let activeEffectScope: EffectScope | undefined
 const effectScopeStack: EffectScope[] = []
 
+// VUETODO todo
 export class EffectScope {
   active = true
   effects: ReactiveEffect[] = []
