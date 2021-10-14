@@ -125,6 +125,7 @@ export function useLink(props: UseLinkOptions) {
   }
 }
 
+// VUEROUTER-路由原理 8-RouterLink
 export const RouterLinkImpl = /*#__PURE__*/ defineComponent({
   name: 'RouterLink',
   props: {

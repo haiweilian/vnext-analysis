@@ -43,6 +43,7 @@ export function createRouteRecordMatcher(
     alias: [],
   })
 
+  // 如果存在父对象中。
   if (parent) {
     // both are aliases or both are not aliases
     // we don't want to mix them because the order is used when

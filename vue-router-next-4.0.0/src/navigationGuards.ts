@@ -97,6 +97,7 @@ export function onBeforeRouteUpdate(updateGuard: NavigationGuard) {
   registerGuard(activeRecord, 'updateGuards', updateGuard)
 }
 
+// VUEROUTER-路由守卫 3.1-函数包装为 Promise
 export function guardToPromiseFn(
   guard: NavigationGuard,
   to: RouteLocationNormalized,
@@ -122,8 +123,10 @@ export function guardToPromiseFn(
     // name is defined if record is because of the function overload
     (record.enterCallbacks[name!] = record.enterCallbacks[name!] || [])
 
+  // 判断一个 => 函数 => Promise
   return () =>
     new Promise((resolve, reject) => {
+      // 当调用 next 的时候，执行下一个调用链
       const next: NavigationGuardNext = (
         valid?: boolean | RouteLocationRaw | NavigationGuardNextCallback | Error
       ) => {
@@ -162,6 +165,7 @@ export function guardToPromiseFn(
       }
 
       // wrapping with Promise.resolve allows it to work with both async and sync guards
+      // 调用函数并传递 next
       const guardReturn = guard.call(
         record && record.instances[name!],
         to,
@@ -170,6 +174,7 @@ export function guardToPromiseFn(
       )
       let guardCall = Promise.resolve(guardReturn)
 
+      // 如果没有传递 next，默认执行 next
       if (guard.length < 3) guardCall = guardCall.then(next)
       if (__DEV__ && guard.length > 2) {
         const message = `The "next" callback was never called inside of ${

@@ -333,12 +333,20 @@ export interface Router {
  *
  * @param options - {@link RouterOptions}
  */
+// VUEROUTER-路由原理 1-创建路由对象
+// 1、根据用户传入的配置信息解析并生成更多的元信息，方便后续处理。
+// 2、返回理由对象的方法和安装方法。
 export function createRouter(options: RouterOptions): Router {
+  // 解析路由的配置添加更多的元信息
   const matcher = createRouterMatcher(options.routes, options)
   let parseQuery = options.parseQuery || originalParseQuery
   let stringifyQuery = options.stringifyQuery || originalStringifyQuery
+
+  // 当前的路由模式
   let routerHistory = options.history
 
+  // VUEROUTER-路由守卫 1.1-收集全局守卫
+  // 收集全局路由守卫数组
   const beforeGuards = useCallbacks<NavigationGuardWithThis<undefined>>()
   const beforeResolveGuards = useCallbacks<NavigationGuardWithThis<undefined>>()
   const afterGuards = useCallbacks<NavigationHookAfter>()
@@ -399,6 +407,7 @@ export function createRouter(options: RouterOptions): Router {
     // const objectLocation = routerLocationAsObject(rawLocation)
     // we create a copy to modify it later
     currentLocation = assign({}, currentLocation || currentRoute.value)
+    // 1、如果是一个字符串
     if (typeof rawLocation === 'string') {
       let locationNormalized = parseURL(
         parseQuery,
@@ -433,6 +442,7 @@ export function createRouter(options: RouterOptions): Router {
     let matcherLocation: MatcherLocationRaw
 
     // path could be relative in object as well
+    // 2、如果是一个对象
     if ('path' in rawLocation) {
       if (
         __DEV__ &&
@@ -459,6 +469,8 @@ export function createRouter(options: RouterOptions): Router {
       currentLocation.params = encodeParams(currentLocation.params)
     }
 
+    // VUEROUTER-路由原理 4.2-匹配路径信息(resolve)
+    // 调用的 matcher 的解析函数
     let matchedRoute = matcher.resolve(matcherLocation, currentLocation)
     const hash = rawLocation.hash || ''
 
@@ -495,6 +507,7 @@ export function createRouter(options: RouterOptions): Router {
       }
     }
 
+    // 3、返回一个标准化后的新对象
     return assign(
       {
         fullPath,
@@ -540,6 +553,7 @@ export function createRouter(options: RouterOptions): Router {
     }
   }
 
+  // VUEROUTER-路由原理 4-编程式导航(push/...)
   function push(to: RouteLocationRaw | RouteLocation) {
     return pushWithRedirect(to)
   }
@@ -585,10 +599,13 @@ export function createRouter(options: RouterOptions): Router {
     }
   }
 
+  // VUEROUTER-路由原理 4.1-编程式导航(pushWithRedirect)
+  // 路径变更都是通过 pushWithRedirect 改变路径的
   function pushWithRedirect(
     to: RouteLocationRaw | RouteLocation,
     redirectedFrom?: RouteLocation
   ): Promise<NavigationFailure | void | undefined> {
+    // 根据传入的 to 和 matchers 获取当前的导航信息
     const targetLocation: RouteLocation = (pendingLocation = resolve(to))
     const from = currentRoute.value
     const data: HistoryState | undefined = (to as RouteLocationOptions).state
@@ -629,6 +646,7 @@ export function createRouter(options: RouterOptions): Router {
       )
     }
 
+    // VUEROUTER-路由原理 4.3-调用导航(navigate)
     return (failure ? Promise.resolve(failure) : navigate(toLocation, from))
       .catch((error: NavigationFailure | NavigationRedirectError) =>
         isNavigationFailure(error)
@@ -678,6 +696,7 @@ export function createRouter(options: RouterOptions): Router {
           }
         } else {
           // if we fail we don't finalize the navigation
+          // VUEROUTER-路由原理 4.4-完成导航(finalizeNavigation)
           failure = finalizeNavigation(
             toLocation as RouteLocationNormalizedLoaded,
             from,
@@ -709,13 +728,16 @@ export function createRouter(options: RouterOptions): Router {
   }
 
   // TODO: refactor the whole before guards by internally using router.beforeEach
-
+  // VUEROUTER-路由守卫 2-路由导航
+  // 在调用最终的导航前会先执行导航守卫
   function navigate(
     to: RouteLocationNormalized,
     from: RouteLocationNormalizedLoaded
   ): Promise<any> {
+    // 守卫数组
     let guards: Lazy<any>[]
 
+    // 提取所有配置导航守卫
     const [
       leavingRecords,
       updatingRecords,
@@ -723,6 +745,7 @@ export function createRouter(options: RouterOptions): Router {
     ] = extractChangingRecords(to, from)
 
     // all components here have been resolved once because we are leaving
+    // 提取所有组件中的 beforeRouteLeave
     guards = extractComponentsGuards(
       leavingRecords.reverse(),
       'beforeRouteLeave',
@@ -731,6 +754,7 @@ export function createRouter(options: RouterOptions): Router {
     )
 
     // leavingRecords is already reversed
+    // 通过 guardToPromiseFn 函数 Promise 化
     for (const record of leavingRecords) {
       record.leaveGuards.forEach(guard => {
         guards.push(guardToPromiseFn(guard, to, from))
@@ -746,10 +770,29 @@ export function createRouter(options: RouterOptions): Router {
     guards.push(canceledNavigationCheck)
 
     // run the queue of per route beforeRouteLeave guards
+    // VUEROUTER-路由守卫 3-执行守卫 [4.3]
+    // 解析顺序：https://next.router.vuejs.org/zh/guide/advanced/navigation-guards.html#完整的导航解析流程
+    // 守卫是利用 Promise 的串联的特性，把守卫函数都包装成 Promise，调用 runGuardQueue 依次执行
+    // 如下示例：输出 1, 2, 3
+    // new Promise((resolve, reject) => {
+    //   resolve();
+    // }).then(() => {
+    //   return new Promise((resolve, reject) => {
+    //     resolve();
+    //   }).then(() => {
+    //     console.log(1);
+    //   }).then(() => {
+    //     console.log(2);
+    //   });
+    // }).then(() => {
+    //   console.log(3);
+    // });
     return (
+      // 1、执行组件 beforeRouteLeave
       runGuardQueue(guards)
         .then(() => {
           // check global guards beforeEach
+          // 2、全局的 beforeGuards
           guards = []
           for (const guard of beforeGuards.list()) {
             guards.push(guardToPromiseFn(guard, to, from))
@@ -760,6 +803,7 @@ export function createRouter(options: RouterOptions): Router {
         })
         .then(() => {
           // check in components beforeRouteUpdate
+          // 3、组件的 beforeRouteUpdate
           guards = extractComponentsGuards(
             updatingRecords,
             'beforeRouteUpdate',
@@ -779,6 +823,7 @@ export function createRouter(options: RouterOptions): Router {
         })
         .then(() => {
           // check the route beforeEnter
+          // 4、配置的 beforeEnter
           guards = []
           for (const record of to.matched) {
             // do not trigger beforeEnter on reused views
@@ -803,6 +848,7 @@ export function createRouter(options: RouterOptions): Router {
           to.matched.forEach(record => (record.enterCallbacks = {}))
 
           // check in-component beforeRouteEnter
+          // 5、组件的 beforeRouteEnter
           guards = extractComponentsGuards(
             enteringRecords,
             'beforeRouteEnter',
@@ -816,6 +862,7 @@ export function createRouter(options: RouterOptions): Router {
         })
         .then(() => {
           // check global guards beforeResolve
+          // 6、全局的 beforeResolve
           guards = []
           for (const guard of beforeResolveGuards.list()) {
             guards.push(guardToPromiseFn(guard, to, from))
@@ -865,6 +912,8 @@ export function createRouter(options: RouterOptions): Router {
 
     // change URL only if the user did a push/replace and if it's not the initial navigation because
     // it's just reflecting the url
+    // VUEROUTER-路由原理 4.5-导航模式
+    // 使用哪种导航模式是由创建的时候传入的 history 配置决定的，列如：createWebHistory
     if (isPush) {
       // on the initial navigation, we want to reuse the scroll position from
       // history state if it exists
@@ -882,6 +931,7 @@ export function createRouter(options: RouterOptions): Router {
     }
 
     // accept current navigation
+    // VUEROUTER-路由原理 4.6-更新当前路径信息
     currentRoute.value = toLocation
     handleScroll(toLocation, from, isPush, isFirstNavigation)
 
@@ -890,7 +940,9 @@ export function createRouter(options: RouterOptions): Router {
 
   let removeHistoryListener: () => void
   // attach listener to history to trigger navigations
+  // VUEROUTER-路由原理 6-监听浏览器路径变化
   function setupListeners() {
+    // 1、添加侦听器回调
     removeHistoryListener = routerHistory.listen((to, _from, info) => {
       // cannot be a redirect route because it was in history
       let toLocation = resolve(to) as RouteLocationNormalized
@@ -918,6 +970,7 @@ export function createRouter(options: RouterOptions): Router {
         )
       }
 
+      // 侦听器函数也是执行 navigate 方法，执行路由切换过程中的一系列导航守卫函数
       navigate(toLocation, from)
         .catch((error: NavigationFailure | NavigationRedirectError) => {
           if (
@@ -962,6 +1015,7 @@ export function createRouter(options: RouterOptions): Router {
           // revert the navigation
           if (failure && info.delta) routerHistory.go(-info.delta, false)
 
+          // 全局的 afterEach
           triggerAfterEach(
             toLocation as RouteLocationNormalizedLoaded,
             from,
@@ -1003,6 +1057,7 @@ export function createRouter(options: RouterOptions): Router {
    * @param err - optional error
    */
   function markAsReady(err?: any): void {
+    // ready 只执行一次
     if (ready) return
     ready = true
     setupListeners()
@@ -1040,9 +1095,12 @@ export function createRouter(options: RouterOptions): Router {
   let started: boolean | undefined
   const installedApps = new Set<App>()
 
+  // VUEROUTER-路由原理 2-返回路由对象
   const router: Router = {
+    // 响应式的当前路由
     currentRoute,
 
+    // 操作方法
     addRoute,
     removeRoute,
     hasRoute,
@@ -1050,24 +1108,33 @@ export function createRouter(options: RouterOptions): Router {
     resolve,
     options,
 
+    // 导航方法
     push,
     replace,
     go,
     back: () => go(-1),
     forward: () => go(1),
 
+    // 导航守卫
+    // VUEROUTER-路由守卫 1-添加全局守卫
     beforeEach: beforeGuards.add,
     beforeResolve: beforeResolveGuards.add,
     afterEach: afterGuards.add,
 
+    // 状态方法
     onError: errorHandlers.add,
     isReady,
 
+    // 插件安装方法，具体看： https://v3.cn.vuejs.org/api/application-api.html#use
     install(app: App) {
       const router = this
+
+      // 注册路由组件
       app.component('RouterLink', RouterLink)
       app.component('RouterView', RouterView)
 
+      // 全局配置定义 $router 和 $route
+      // https://v3.cn.vuejs.org/api/application-config.html#globalproperties
       app.config.globalProperties.$router = router
       Object.defineProperty(app.config.globalProperties, '$route', {
         get: () => unref(currentRoute),
@@ -1100,10 +1167,15 @@ export function createRouter(options: RouterOptions): Router {
         reactiveRoute[key] = computed(() => currentRoute.value[key])
       }
 
+      // 全局注入 router、reactiveRoute、currentRoute
+      // router 表示当前路由的对象，它可以调用方法操作路由。
       app.provide(routerKey, router)
+      // reactiveRoute 表示当前路径对象，它维护着路径的相关信息(对 currentRoute 的深层代理)。
       app.provide(routeLocationKey, reactive(reactiveRoute))
+      // currentRoute 表示当前的路径对象，它可以获取当前路径信息(浅响应)。
       app.provide(routerViewLocationKey, currentRoute)
 
+      // 应用卸载，重写 unmount 函数，附加销毁逻辑。
       let unmountApp = app.unmount
       installedApps.add(app)
       app.unmount = function () {
@@ -1126,7 +1198,14 @@ export function createRouter(options: RouterOptions): Router {
   return router
 }
 
+// VUEROUTER-路由守卫 3.2-执行 Promise 链
 function runGuardQueue(guards: Lazy<any>[]): Promise<void> {
+  // 返回值作为下次执行的一个参数
+  // Promise.resolve()
+  // .then(() => new Promise())
+  // .then(() => new Promise())
+  // .then(() => new Promise())
+  // ...
   return guards.reduce(
     (promise, guard) => promise.then(() => guard()),
     Promise.resolve()

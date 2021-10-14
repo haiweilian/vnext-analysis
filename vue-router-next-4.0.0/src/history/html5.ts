@@ -63,11 +63,13 @@ function useHistoryListeners(
   // can trigger twice
   let pauseState: HistoryLocation | null = null
 
+  // 执行侦听器
   const popStateHandler: PopStateListener = ({
     state,
   }: {
     state: StateEntry | null
   }) => {
+    // 1、获取当前路径信息
     const to = createCurrentLocation(base, location)
     const from: HistoryLocation = currentLocation.value
     const fromState: StateEntry = historyState.value
@@ -93,6 +95,7 @@ function useHistoryListeners(
     // to be updated before triggering the listeners. Some kind of validation function would also
     // need to be passed to the listeners so the navigation can be accepted
     // call all listeners
+    // 2、循环执行侦听器，并传入路径信息
     listeners.forEach(listener => {
       listener(currentLocation.value, from, {
         delta,
@@ -110,8 +113,10 @@ function useHistoryListeners(
     pauseState = currentLocation.value
   }
 
+  // 添加侦听器
   function listen(callback: NavigationCallback) {
     // setup the listener and prepare teardown callbacks
+    // 添加到 listeners 数组中
     listeners.push(callback)
 
     const teardown = () => {
@@ -140,6 +145,7 @@ function useHistoryListeners(
   }
 
   // setup the listeners and prepare teardown callbacks
+  // 点击浏览器的回退按钮或者是执行了 history.back 方法的时候
   window.addEventListener('popstate', popStateHandler)
   window.addEventListener('beforeunload', beforeUnloadListener)
 
@@ -170,6 +176,7 @@ function buildState(
   }
 }
 
+// VUEROUTER-路由原理 5.1-导航方法实现
 function useHistoryStateNavigation(base: string) {
   const { history, location } = window
 
@@ -211,6 +218,7 @@ function useHistoryStateNavigation(base: string) {
     try {
       // BROWSER QUIRK
       // NOTE: Safari throws a SecurityError when calling this function 100 times in 30 seconds
+      // 调用浏览器的 API，替换或者添加一个状态
       history[replace ? 'replaceState' : 'pushState'](state, '', url)
       historyState.value = state
     } catch (err) {
@@ -224,6 +232,7 @@ function useHistoryStateNavigation(base: string) {
     }
   }
 
+  // replace
   function replace(to: HistoryLocation, data?: HistoryState) {
     const state: StateEntry = assign(
       {},
@@ -243,6 +252,7 @@ function useHistoryStateNavigation(base: string) {
     currentLocation.value = to
   }
 
+  // push
   function push(to: HistoryLocation, data?: HistoryState) {
     // Add to current entry the information of where we are going
     // as well as saving the current position
@@ -280,6 +290,7 @@ function useHistoryStateNavigation(base: string) {
     currentLocation.value = to
   }
 
+  // 返回调用方法，还记得 【2.3.1】中调用的 push 和 replace 就是封装的方法。
   return {
     location: currentLocation,
     state: historyState,
@@ -294,9 +305,13 @@ function useHistoryStateNavigation(base: string) {
  *
  * @param base -
  */
+// VUEROUTER-路由原理 5-导航模式：HTML5 history
+// [MDN History API] https://developer.mozilla.org/zh-CN/docs/Web/API/History
 export function createWebHistory(base?: string): RouterHistory {
+  // 标准化初始路径
   base = normalizeBase(base)
 
+  // 设置导航方法和监听路径变化
   const historyNavigation = useHistoryStateNavigation(base)
   const historyListeners = useHistoryListeners(
     base,
@@ -309,6 +324,7 @@ export function createWebHistory(base?: string): RouterHistory {
     history.go(delta)
   }
 
+  // 返回模式对象
   const routerHistory: RouterHistory = assign(
     {
       // it's overridden right after

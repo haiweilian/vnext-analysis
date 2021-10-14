@@ -34,6 +34,7 @@ export interface RouterViewProps {
   route?: RouteLocationNormalized
 }
 
+// VUEROUTER-路由原理 7-RouterView
 export const RouterViewImpl = /*#__PURE__*/ defineComponent({
   name: 'RouterView',
   props: {
@@ -47,13 +48,17 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
   setup(props, { attrs, slots }) {
     __DEV__ && warnDeprecatedUsage()
 
+    // 初始化的时候响应式 currentRoute 对象
     const injectedRoute = inject(routerViewLocationKey)!
     const routeToDisplay = computed(() => props.route || injectedRoute.value)
+
+    // 嵌套层级，默认 0
     const depth = inject(viewDepthKey, 0)
     const matchedRouteRef = computed<RouteLocationMatched | undefined>(
       () => routeToDisplay.value.matched[depth]
     )
 
+    // 嵌套层级继续往下传递并 + 1
     provide(viewDepthKey, depth + 1)
     provide(matchedRouteKey, matchedRouteRef)
     provide(routerViewLocationKey, routeToDisplay)
@@ -97,6 +102,7 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
     return () => {
       const route = routeToDisplay.value
       const matchedRoute = matchedRouteRef.value
+      // 获取匹配的组件
       const ViewComponent = matchedRoute && matchedRoute.components[props.name]
       // we need the value at the time we render because when we unmount, we
       // navigated to a different location so the value is different
@@ -123,6 +129,7 @@ export const RouterViewImpl = /*#__PURE__*/ defineComponent({
         }
       }
 
+      // 渲染组件
       const component = h(
         ViewComponent,
         assign({}, routeProps, attrs, {

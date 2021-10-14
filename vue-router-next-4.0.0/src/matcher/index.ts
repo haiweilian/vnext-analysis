@@ -46,13 +46,57 @@ export interface RouterMatcher {
  * @param routes - array of initial routes
  * @param globalOptions - global route options
  */
+// VUEROUTER-路由原理 3-路由解析
+// 定义了路由配置的添加和查找等方法 matchers 和 matcherMap 是最终处理的结果
+
+// 输入 ================>>
+// const routes = [
+//   {
+//     path: "/",
+//     component: Home,
+//     children: [
+//       {
+//         path: "home-child",
+//         component: HomeChild,
+//       },
+//     ],
+//   },
+//   { path: "/about", component: About },
+// ];
+
+// 转换成 ================>>
+
+// [
+//   {
+//     re: /^\/home-child\/?$/i,
+//     record: { path: "/home-child" /*...*/ },
+//     parent: { re: /^\/\/?$/i },
+//     /*...*/
+//   },
+//   {
+//     re: /^\/\/?$/i,
+//     ecord: { path: "/" /*...*/ },
+//     parent: undefined,
+//     /*...*/
+//   },
+//   {
+//     re: /^\/about\/?$/i,
+//     record: { path: "/about" /*...*/ },
+//     parent: undefined,
+//     /*...*/
+//   },
+// ];
+
 export function createRouterMatcher(
   routes: RouteRecordRaw[],
   globalOptions: PathParserOptions
 ): RouterMatcher {
   // normalized ordered array of matchers
+  // 标准化后的路由配置数组
   const matchers: RouteRecordMatcher[] = []
   const matcherMap = new Map<RouteRecordName, RouteRecordMatcher>()
+
+  // 合并配置
   globalOptions = mergeOptions(
     { strict: false, end: true, sensitive: false } as PathParserOptions,
     globalOptions
@@ -62,6 +106,7 @@ export function createRouterMatcher(
     return matcherMap.get(name)
   }
 
+  // 添加路由配置
   function addRoute(
     record: RouteRecordRaw,
     parent?: RouteRecordMatcher,
@@ -69,6 +114,7 @@ export function createRouterMatcher(
   ) {
     // used later on to remove by name
     let isRootAdd = !originalRecord
+    // 1、标准化 record 对象
     let mainNormalizedRecord = normalizeRouteRecord(record)
     // we might be the child of an alias
     mainNormalizedRecord.aliasOf = originalRecord && originalRecord.record
@@ -124,6 +170,7 @@ export function createRouterMatcher(
       }
 
       // create the object before hand so it can be passed to children
+      // 创建新对象，并把子路由与父路由双向建立关系
       matcher = createRouteRecordMatcher(normalizedRecord, parent, options)
 
       if (__DEV__ && parent && path[0] === '/')
@@ -147,6 +194,7 @@ export function createRouterMatcher(
           removeRoute(record.name)
       }
 
+      // 包含 children 继续添加，那么它的 parent 就是刚才匹配的 matcher
       if ('children' in mainNormalizedRecord) {
         let children = mainNormalizedRecord.children
         for (let i = 0; i < children.length; i++) {
@@ -178,6 +226,7 @@ export function createRouterMatcher(
       : noop
   }
 
+  // 删除路由配置
   function removeRoute(matcherRef: RouteRecordName | RouteRecordMatcher) {
     if (isRouteName(matcherRef)) {
       const matcher = matcherMap.get(matcherRef)
@@ -198,6 +247,7 @@ export function createRouterMatcher(
     }
   }
 
+  // 获取路由配置
   function getRoutes() {
     return matchers
   }
@@ -218,6 +268,7 @@ export function createRouterMatcher(
       matcherMap.set(matcher.record.name, matcher)
   }
 
+  // 获取解析路径配置
   function resolve(
     location: Readonly<MatcherLocationRaw>,
     currentLocation: Readonly<MatcherLocation>
@@ -227,6 +278,7 @@ export function createRouterMatcher(
     let path: MatcherLocation['path']
     let name: MatcherLocation['name']
 
+    // 1、如果存在 name 直接获取
     if ('name' in location && location.name) {
       matcher = matcherMap.get(location.name)
 
@@ -248,7 +300,9 @@ export function createRouterMatcher(
       )
       // throws if cannot be stringified
       path = matcher.stringify(params)
-    } else if ('path' in location) {
+    }
+    // 2、如果存在 path 使用正则匹配
+    else if ('path' in location) {
       // no need to resolve the path with the matcher as it was provided
       // this also allows the user to control the encoding
       path = location.path
@@ -259,6 +313,7 @@ export function createRouterMatcher(
         )
       }
 
+      // 通过 matchers 匹配出路径
       matcher = matchers.find(m => m.re.test(path))
       // matcher should have a value after the loop
 
@@ -269,7 +324,9 @@ export function createRouterMatcher(
         name = matcher.record.name
       }
       // location is a relative path
-    } else {
+    }
+    // 3、根据当前信息
+    else {
       // match by name or path of current route
       matcher = currentLocation.name
         ? matcherMap.get(currentLocation.name)
@@ -286,6 +343,7 @@ export function createRouterMatcher(
       path = matcher.stringify(params)
     }
 
+    // 获取的路由配置并返回 matched 对象，代表匹配的层级
     const matched: MatcherLocation['matched'] = []
     let parentMatcher: RouteRecordMatcher | undefined = matcher
     while (parentMatcher) {
@@ -304,8 +362,9 @@ export function createRouterMatcher(
     }
   }
 
-  // add initial routes
+  // 添加初始路径
   routes.forEach(route => addRoute(route))
+  console.log('初始化后路由的配置信息', matchers)
 
   return { addRoute, resolve, removeRoute, getRoutes, getRecordMatcher }
 }

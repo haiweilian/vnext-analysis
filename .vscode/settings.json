@@ -17,7 +17,9 @@
     "VUENEXT-Directive",
     "VUENEXT-VModel",
     "VUENEXT-Teleport",
-    "VUENEXT-KeepAlive"
+    "VUENEXT-KeepAlive",
+    "VUEROUTER-路由原理",
+    "VUEROUTER-路由守卫"
   ],
   "todo-tree.highlights.customHighlight": {
     "VUETODO": {
@@ -71,8 +73,11 @@
     "VUENEXT-KeepAlive": {
       "background": "#660000"
     },
-    "VUENEXT-Transition": {
-      "background": "#6600cc"
+    "VUEROUTER-路由原理": {
+      "background": "#99ff11"
+    },
+    "VUEROUTER-路由守卫": {
+      "background": "#7744BB"
     }
   }
 }
