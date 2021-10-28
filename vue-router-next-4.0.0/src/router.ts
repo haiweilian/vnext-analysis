@@ -400,6 +400,7 @@ export function createRouter(options: RouterOptions): Router {
     return !!matcher.getRecordMatcher(name)
   }
 
+  // 获取到路由配置
   function resolve(
     rawLocation: Readonly<RouteLocationRaw>,
     currentLocation?: RouteLocationNormalizedLoaded
@@ -647,6 +648,7 @@ export function createRouter(options: RouterOptions): Router {
     }
 
     // VUEROUTER-路由原理 4.3-调用导航(navigate)
+    // navigate 是路由钩子是调用路由钩子成功后的返回，这个等研究【路由导航部分细看】
     return (failure ? Promise.resolve(failure) : navigate(toLocation, from))
       .catch((error: NavigationFailure | NavigationRedirectError) =>
         isNavigationFailure(error)
@@ -895,6 +897,7 @@ export function createRouter(options: RouterOptions): Router {
    * - Changes the url if necessary
    * - Calls the scrollBehavior
    */
+  // 完成最终的导航
   function finalizeNavigation(
     toLocation: RouteLocationNormalizedLoaded,
     from: RouteLocationNormalizedLoaded,
@@ -913,7 +916,7 @@ export function createRouter(options: RouterOptions): Router {
     // change URL only if the user did a push/replace and if it's not the initial navigation because
     // it's just reflecting the url
     // VUEROUTER-路由原理 4.5-导航模式
-    // 使用哪种导航模式是由创建的时候传入的 history 配置决定的，列如：createWebHistory
+    // 使用哪种导航模式是由创建的时候传入的 history 配置决定的，列如：createWebHistory 根据模式添加浏览器的路由记录。
     if (isPush) {
       // on the initial navigation, we want to reuse the scroll position from
       // history state if it exists
@@ -932,6 +935,8 @@ export function createRouter(options: RouterOptions): Router {
 
     // accept current navigation
     // VUEROUTER-路由原理 4.6-更新当前路径信息
+    // 因为 currentRoute 是影响式的，所以当更新 currentRoute 的时候，
+    // 那么依赖它的 router-view 也会重新渲染，这样就做到了重新渲染视图。
     currentRoute.value = toLocation
     handleScroll(toLocation, from, isPush, isFirstNavigation)
 

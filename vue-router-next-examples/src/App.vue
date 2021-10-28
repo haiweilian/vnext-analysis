@@ -2,8 +2,8 @@
   <div id="app">
     <h1>Hello App!</h1>
     <p>
-      <router-link to="/">Go to Home</router-link>
-      <router-link to="/about">Go to About</router-link>
+      <router-link to="/">首页</router-link>
+      <router-link to="/about">关于</router-link>
     </p>
     <router-view></router-view>
   </div>

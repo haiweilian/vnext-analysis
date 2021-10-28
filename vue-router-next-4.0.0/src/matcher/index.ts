@@ -47,7 +47,8 @@ export interface RouterMatcher {
  * @param globalOptions - global route options
  */
 // VUEROUTER-路由原理 3-路由解析
-// 定义了路由配置的添加和查找等方法 matchers 和 matcherMap 是最终处理的结果
+// createRouter 的第一步就是路由解析
+// 定义了路由配置的添加和查找等方法 matchers(path) 和 matcherMap(name) 是最终处理的结果
 
 // 输入 ================>>
 // const routes = [
@@ -102,14 +103,15 @@ export function createRouterMatcher(
     globalOptions
   )
 
+  // 根据 name 获取配置
   function getRecordMatcher(name: RouteRecordName) {
     return matcherMap.get(name)
   }
 
   // 添加路由配置
   function addRoute(
-    record: RouteRecordRaw,
-    parent?: RouteRecordMatcher,
+    record: RouteRecordRaw, // 单个路由对象
+    parent?: RouteRecordMatcher, // 上级
     originalRecord?: RouteRecordMatcher
   ) {
     // used later on to remove by name
@@ -154,6 +156,10 @@ export function createRouterMatcher(
       // Build up the path for nested routes if the child isn't an absolute
       // route. Only add the / delimiter if the child path isn't empty and if the
       // parent path doesn't have a trailing slash
+      // 如果父级存在(不是根层级)并且子级路由不是以 / 开头的，那么就是嵌套路径。
+      // 当前路径拼接上父级路径:
+      // '/' + 'home-child' => '/home-child'
+      // '/' + 'home-child' + 'child' => '/home-child/child'
       if (parent && path[0] !== '/') {
         let parentPath = parent.record.path
         let connectingSlash =
@@ -252,6 +258,7 @@ export function createRouterMatcher(
     return matchers
   }
 
+  // 添加进集合
   function insertMatcher(matcher: RouteRecordMatcher) {
     let i = 0
     // console.log('i is', { i })
@@ -264,6 +271,7 @@ export function createRouterMatcher(
     // while (i < matchers.length && matcher.score <= matchers[i].score) i++
     matchers.splice(i, 0, matcher)
     // only add the original record to the name map
+    // 如果包含 name 添加进 map 中映射。
     if (matcher.record.name && !isAliasRecord(matcher))
       matcherMap.set(matcher.record.name, matcher)
   }

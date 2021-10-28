@@ -1,7 +1,4 @@
-import {
-  createRouter,
-  createWebHistory,
-} from "../../vue-router-next-4.0.0/dist/vue-router.esm-bundler";
+import { createRouter, createWebHistory } from "../components/vue-router";
 
 import Home from "./components/Home.vue";
 import HomeChild from "./components/HomeChild.vue";
@@ -41,12 +38,12 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  console.log(to, from);
+  console.log("beforeEach", to, from);
   next();
 });
 
 router.afterEach((to, from) => {
-  console.log(to, from);
+  console.log("afterEach", to, from);
 });
 
 export default router;

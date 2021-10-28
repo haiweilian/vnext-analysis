@@ -10,10 +10,7 @@
 </template>
 
 <script setup>
-import {
-  useRoute,
-  useRouter,
-} from "../../../vue-router-next-4.0.0/dist/vue-router.esm-bundler";
+import { useRoute, useRouter } from "../../components/vue-router";
 const route = useRoute();
 const router = useRouter();
 
