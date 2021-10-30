@@ -233,7 +233,7 @@ function doWatch(
         }
       })
   } else if (isFunction(source)) {
-    // 如果是一个函数，并且 cd 存在，对于 watch 来说，cb 必定存在。
+    // 如果是一个函数，并且 cb 存在，对于 watch 来说，cb 必定存在。
     if (cb) {
       // getter with cb
       getter = () =>

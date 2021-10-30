@@ -1271,6 +1271,7 @@ function baseCreateRenderer(
     // tips: 这部分会在【组件初始化】部分分析
     const instance: ComponentInternalInstance =
       compatMountInstance ||
+      // 示例保存到 vnode.component
       (initialVNode.component = createComponentInstance(
         initialVNode,
         parentComponent,

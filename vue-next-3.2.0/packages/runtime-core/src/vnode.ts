@@ -542,6 +542,7 @@ function _createVNode(
   }
 
   // 2、对 vnode 类型信息编码，以便在后面根据不同的类型执行相应的处理逻辑
+  // VUETODO: Vue3 的位运算编码规则
   const shapeFlag = isString(type)
     ? ShapeFlags.ELEMENT // 1
     : __FEATURE_SUSPENSE__ && isSuspense(type)
