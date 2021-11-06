@@ -5,6 +5,7 @@
  * \/\*#\_\_PURE\_\_\*\/
  * So that rollup can tree-shake them if necessary.
  */
+// 传入一个以逗号分隔的字符串，生成一个 map(键值对)，并且返回一个函数检测 key 值在不在这个 map 中。第二个参数是小写选项。
 export function makeMap(
   str: string,
   expectsLowerCase?: boolean
