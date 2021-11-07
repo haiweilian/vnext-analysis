@@ -48,5 +48,3 @@
 <!-- 感谢所有社区优秀资源的贡献者们。 -->
 
 <!-- [Vue3 核心源码解析](https://ustbhuangyi.github.io/vue-analysis/v3/new/) -->
-
-<!-- [Vue3 源码中那些实用的基础工具函数](https://juejin.cn/post/6994976281053888519) -->
