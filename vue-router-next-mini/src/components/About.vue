@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import { useRoute, useRouter } from "../../components/vue-router";
+import { useRoute, useRouter } from "../../router/vue-router";
 const route = useRoute();
 const router = useRouter();
 

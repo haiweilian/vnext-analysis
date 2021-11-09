@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "../components/vue-router";
+import { createRouter, createWebHistory } from "../router/vue-router";
 
 import Home from "./components/Home.vue";
 import HomeChild from "./components/HomeChild.vue";
