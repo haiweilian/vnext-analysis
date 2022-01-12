@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "types": [
+      "node"
+    ],
+    "strict": true,
+    "noEmit": true
+  },
+  "include": [
+    "*.ts",
+    "../*.d.ts",
+    "../../dist/logger.d.ts"
+  ]
+}

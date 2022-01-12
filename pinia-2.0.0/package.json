@@ -1,0 +1,69 @@
+{
+  "name": "@pinia/root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "release": "node scripts/release.mjs",
+    "size": "lerna run size",
+    "build": "lerna run build",
+    "docs:build": "lerna run docs:build --scope @pinia/docs",
+    "play": "lerna run play",
+    "build:dts": "lerna run build:dts --parallel",
+    "lint": "prettier -c --parser typescript \"packages/*/{src,__tests__,e2e}/**/*.[jt]s?(x)\"",
+    "lint:fix": "yarn run lint --write",
+    "test": "yarn run test:types && yarn run test:jest && lerna run test && yarn run build && yarn run build:dts && yarn test:dts",
+    "test:jest": "jest --coverage",
+    "test:types": "tsc --build ./tsconfig.json",
+    "test:dts": "lerna run test:dts",
+    "docs:api": "lerna run docs:api --scope @pinia/docs"
+  },
+  "devDependencies": {
+    "@rollup/plugin-alias": "^3.1.8",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-replace": "^3.0.0",
+    "@sucrase/jest-plugin": "^2.2.0",
+    "@types/jest": "^27.0.2",
+    "@types/lodash.kebabcase": "^4.1.6",
+    "@types/node": "^16.10.1",
+    "chalk": "^4.1.2",
+    "codecov": "^3.8.3",
+    "conventional-changelog-cli": "^2.1.1",
+    "enquirer": "^2.3.6",
+    "execa": "^5.1.1",
+    "expect": "^27.3.1",
+    "globby": "^12.0.2",
+    "jest": "^27.3.1",
+    "jest-mock-warn": "^1.1.0",
+    "lerna": "^4.0.0",
+    "lint-staged": "^11.2.4",
+    "lodash.kebabcase": "^4.1.1",
+    "minimist": "^1.2.5",
+    "p-series": "^3.0.0",
+    "pascalcase": "^1.0.0",
+    "prettier": "^2.4.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.58.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "semver": "^7.3.5",
+    "typedoc": "^0.22.7",
+    "typedoc-plugin-markdown": "^3.11.3",
+    "typescript": "^4.4.4",
+    "yorkie": "^2.0.0"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged",
+    "commit-msg": "node scripts/verifyCommit.js"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write"
+    ],
+    "*.ts?(x)": [
+      "prettier --parser=typescript --write"
+    ]
+  }
+}

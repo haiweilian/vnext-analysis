@@ -1,0 +1,29 @@
+name: test
+
+on:
+  push:
+    paths-ignore:
+      - 'packages/docs/**'
+      - 'packages/playground/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'yarn'
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn lerna bootstrap
+      - run: yarn run lint
+      - run: yarn run test:types
+      - run: yarn run test:jest
+      - run: yarn run build
+      - run: yarn lerna run build:dts
+      - run: yarn run test:dts
+      - run: yarn run size
+      - run: yarn codecov
