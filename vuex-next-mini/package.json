@@ -1,0 +1,21 @@
+{
+  "name": "pinia-examples",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vue/composition-api": "^1.4.3",
+    "@vue/devtools-api": "^6.0.0-beta.21.1",
+    "pinia": "^2.0.9",
+    "vue": "^3.2.25",
+    "vue-demi": "^0.12.1",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^2.0.0",
+    "vite": "^2.7.2"
+  }
+}
