@@ -2,14 +2,14 @@
 
 此项目是在研究 Vue3 体系的源码分析的总结记录。现有 200+ 流程标记、20+ 思维导图、2+ Mini 版实现。
 
-### 进度
+### 体系进度
 
 - [x] Vue 3.2.0
 - [x] Vue-Router 4.0.0
 - [ ] Vuex 4.0.0
 - [x] Pinia 2.0.0
 
-### 相关
+### 相关内容
 
 - [Vue 团队公开的全新脚手架工具](https://github.com/haiweilian/tinylib-analysis/issues/4)
 - [从 Vue Dev Server 去理解 Vite 原理](https://github.com/haiweilian/tinylib-analysis/issues/5)
