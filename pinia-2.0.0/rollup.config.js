@@ -81,7 +81,7 @@ function createConfig(buildName, output, plugins = []) {
     process.exit(1)
   }
 
-  output.sourcemap = !!process.env.SOURCE_MAP
+  output.sourcemap = true
   output.banner = banner
   output.externalLiveBindings = false
   output.globals = {

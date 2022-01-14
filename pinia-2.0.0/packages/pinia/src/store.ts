@@ -107,13 +107,17 @@ function createOptionsStore<
   pinia: Pinia,
   hot?: boolean
 ): Store<Id, S, G, A> {
+  // PINIA-初始化 2.3-转换选项
+  // 从选项中解构出配置选项
   const { state, actions, getters } = options
 
   const initialState: StateTree | undefined = pinia.state.value[id]
 
   let store: Store<Id, S, G, A>
 
+  // 如果是选项配置，会转化配置项，最后还是转化为函数
   function setup() {
+    // 获取到 state，保存到  pinia.state 上
     if (!initialState && (!__DEV__ || !hot)) {
       if (isVue2) {
         set(pinia.state.value, id, state ? state() : {})
@@ -123,15 +127,30 @@ function createOptionsStore<
     }
 
     // avoid creating a state in pinia.state.value
+    // 获取到对应 id 的 state，通过 toRefs 把对应中的值转换成每个 ref
     const localState =
       __DEV__ && hot
         ? // use ref() to unwrap refs inside state TODO: check if this is still necessary
           toRefs(ref(state ? state() : {}).value)
         : toRefs(pinia.state.value[id])
 
+    // 把 statte、action、getters 合并在一个平级对象里。
+    // {
+    //   count
+    //
+    //   decrement
+    //   evenOrOdd
+    //
+    //   increment
+    //   incrementAsync
+    //   incrementIfOdd
+    // }
     return assign(
+      // statte
       localState,
+      // action
       actions,
+      // getters 转化为计算属性
       Object.keys(getters || {}).reduce((computedGetters, name) => {
         computedGetters[name] = markRaw(
           computed(() => {
@@ -155,6 +174,7 @@ function createOptionsStore<
 
   store = createSetupStore(id, setup, options, pinia, hot)
 
+  // 重置状态
   store.$reset = function $reset() {
     const newState = state ? state() : {}
     // we use a patch to group all changes into one single subscription
@@ -241,6 +261,8 @@ function createSetupStore<
 
   const hotState = ref({} as S)
 
+  // 批量更新 state，处理数据合并
+  // https://pinia.vuejs.org/api/interfaces/pinia._StoreWithState.html#patch
   function $patch(stateMutation: (state: UnwrapRef<S>) => void): void
   function $patch(partialState: DeepPartial<UnwrapRef<S>>): void
   function $patch(
@@ -289,6 +311,7 @@ function createSetupStore<
       }
     : noop
 
+  // 销毁：停止监听，清空订阅，删除缓存。
   function $dispose() {
     scope.stop()
     subscriptions = []
@@ -363,6 +386,7 @@ function createSetupStore<
     hotState,
   })
 
+  // 定义模块的实例
   const partialStore = {
     _p: pinia,
     // _s: scope,
@@ -441,19 +465,23 @@ function createSetupStore<
 
   // store the partial store now so the setup of stores can instantiate each other before they are finished without
   // creating infinite loops.
+  // 缓存模块实例
   pinia._s.set($id, store)
 
   // TODO: idea create skipSerialize that marks properties as non serializable and they are skipped
+  // 执行 setup，并利用 Effect 作用域 收集监听以便在销毁的时候取消监听
   const setupStore = pinia._e.run(() => {
     scope = effectScope()
     return scope.run(() => setup())
   })!
 
   // overwrite existing actions to support $onAction
+  // 循环处理返回的所有的值
   for (const key in setupStore) {
     const prop = setupStore[key]
 
     if ((isRef(prop) && !isComputed(prop)) || isReactive(prop)) {
+      // 属性添加到 pinia.state 对应的 id 上
       // mark it as a piece of state to be serialized
       if (__DEV__ && hot) {
         set(hotState.value, key, toRef(setupStore as any, key))
@@ -483,6 +511,7 @@ function createSetupStore<
       }
       // action
     } else if (typeof prop === 'function') {
+      // 函数包装成 action 函数
       // @ts-expect-error: we are overriding the function we avoid wrapping if
       const actionValue = __DEV__ && hot ? prop : wrapAction(key, prop)
       // this a hot module replacement store because the hotUpdate method needs
@@ -520,6 +549,7 @@ function createSetupStore<
   }
 
   // add the state, getters, and action properties
+  // 合并 store 和 setupStore 的属性值，最总返回 store
   if (isVue2) {
     Object.keys(setupStore).forEach((key) => {
       set(
@@ -652,6 +682,7 @@ function createSetupStore<
   }
 
   // apply all plugins
+  // 执行所有的插件
   pinia._p.forEach((extender) => {
     /* istanbul ignore else */
     if (__DEV__ && IS_CLIENT) {
@@ -770,6 +801,7 @@ export type StoreState<SS> = SS extends Store<
  * @param id - id of the store (must be unique)
  * @param options - options to define the store
  */
+// PINIA-初始化 2-defineStore()
 export function defineStore<
   Id extends string,
   S extends StateTree = {},
@@ -837,6 +869,7 @@ export function defineStore(
         _ActionsTree
       >
 
+  // 获取到 id 和 options，可以是函数或选项配置
   const isSetupStore = typeof setup === 'function'
   if (typeof idOrOptions === 'string') {
     id = idOrOptions
@@ -847,13 +880,20 @@ export function defineStore(
     id = idOrOptions.id
   }
 
+  // PINIA-初始化 2.1-useStore()
+  // 注意 useStore 可以传入 pinia 实例，在某些情况了我们可以通过 useStore(rootStore) 放心的使用跨实例和 setup 之外调用。
+  // https://pinia.vuejs.org/core-concepts/outside-component-usage.html
   function useStore(pinia?: Pinia | null, hot?: StoreGeneric): StoreGeneric {
     const currentInstance = getCurrentInstance()
+
+    // 获取到设置的 pinia 实例
     pinia =
       // in test mode, ignore the argument provided as we can always retrieve a
       // pinia instance with getActivePinia()
       (__TEST__ && activePinia && activePinia._testing ? null : pinia) ||
       (currentInstance && inject(piniaSymbol))
+
+    // 设置当前激活的 pinia
     if (pinia) setActivePinia(pinia)
 
     if (__DEV__ && !activePinia) {
@@ -867,6 +907,10 @@ export function defineStore(
 
     pinia = activePinia!
 
+    // PINIA-初始化 2.2-解析选项
+    // 判断此 id 是否已经存在
+    // 这里有两种传入参数，*函数方式* 和 *选项方式*
+    // 两者最终的处理都一致，*选项方式* 也会先转换成 *函数方式*，再调用 createSetupStore
     if (!pinia._s.has(id)) {
       // creating the store registers it in `pinia._s`
       if (isSetupStore) {

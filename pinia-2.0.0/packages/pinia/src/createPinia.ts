@@ -12,6 +12,7 @@ import { StateTree, StoreGeneric } from './types'
 /**
  * Creates a Pinia instance to be used by the application
  */
+// PINIA-初始化 1-createPinia()
 export function createPinia(): Pinia {
   const scope = effectScope(true)
   // NOTE: here we could check the window object for a state and directly set it
@@ -23,12 +24,17 @@ export function createPinia(): Pinia {
   let toBeInstalled: PiniaStorePlugin[] = []
 
   const pinia: Pinia = markRaw({
+    // PINIA-初始化 1.1-安装方法
     install(app: App) {
       // this allows calling useStore() outside of a component setup after
       // installing pinia's plugin
+      // 设置当前激活的 pinia 实例，为什么这么做?
+      // 因为可以在组件之外调用 pinia，相对应的 getActivePinia 能说明这个效果。
       setActivePinia(pinia)
       if (!isVue2) {
+        // 保存 app 实例
         pinia._a = app
+        // 全局注入 pinia 并在根实例上挂载 $pinia
         app.provide(piniaSymbol, pinia)
         app.config.globalProperties.$pinia = pinia
         /* istanbul ignore else */
@@ -40,6 +46,7 @@ export function createPinia(): Pinia {
       }
     },
 
+    // PINIA-初始化 1.2-添加插件
     use(plugin) {
       if (!this._a && !isVue2) {
         toBeInstalled.push(plugin)
@@ -49,12 +56,18 @@ export function createPinia(): Pinia {
       return this
     },
 
+    // PINIA-初始化 1.3-全局属性
+    // 插件
     _p,
     // it's actually undefined here
     // @ts-expect-error
+    // vue app
     _a: null,
+    // 作用域
     _e: scope,
+    // 缓存
     _s: new Map<string, StoreGeneric>(),
+    // 全局状态
     state,
   })
 

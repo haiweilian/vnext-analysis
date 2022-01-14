@@ -19,7 +19,8 @@
     "VUENEXT-Teleport",
     "VUENEXT-KeepAlive",
     "VUEROUTER-路由原理",
-    "VUEROUTER-路由守卫"
+    "VUEROUTER-路由守卫",
+    "PINIA-初始化"
   ],
   "todo-tree.highlights.customHighlight": {
     "VUETODO": {
@@ -78,6 +79,9 @@
     },
     "VUEROUTER-路由守卫": {
       "background": "#7744BB"
+    },
+    "PINIA-初始化": {
+      "background": "#CCDD77"
     }
   }
 }
