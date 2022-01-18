@@ -6,7 +6,7 @@
 
 - [x] Vue 3.2.0
 - [x] Vue-Router 4.0.0
-- [ ] Vuex 4.0.0
+- [x] Vuex 4.0.0
 - [x] Pinia 2.0.0
 
 ### 相关内容

@@ -1,4 +1,6 @@
-import { createStore } from "../../../vuex-next-4.0.0/dist/vuex.esm-bundler";
+import { createStore } from "../../../vuex-next-4.0.0/src/index.js";
+
+window.__DEV__ = true;
 
 const state = {
   count: 0,
@@ -38,4 +40,20 @@ export default createStore({
   getters,
   actions,
   mutations,
+  modules: {
+    // 子模块
+    child2: {
+      state: {
+        deep: 2,
+      },
+      // 子子模块
+      modules: {
+        child3: {
+          state: {
+            deep: 3,
+          },
+        },
+      },
+    },
+  },
 });
