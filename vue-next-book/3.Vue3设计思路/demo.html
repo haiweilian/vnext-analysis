@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 渲染函数
+      function render(vnode, container) {
+        if (typeof vnode.tag == "object") {
+          // 对象是组件
+          mountComponent(vnode, container);
+        } else {
+          // 元素节点
+          mountElement(vnode, container);
+        }
+      }
+
+      function mountElement(vnode, container) {
+        const el = document.createElement(vnode.tag);
+
+        for (key in vnode.props) {
+          if (/^on/.test(key)) {
+            // 如果是事件
+            const event = key.slice(2).toLowerCase(); // onClick => click
+            el.addEventListener(event, vnode.props[key]);
+          }
+        }
+
+        // 渲染子节点
+        if (typeof vnode.children == "string") {
+          // 字符串文本节点
+          el.appendChild(document.createTextNode(vnode.children));
+        } else {
+          // 数组，递归遍历子节点， 把当前节点作为下一个节点的父节点
+          vnode.children.forEach((child) => render(child, el));
+        }
+
+        container.appendChild(el);
+      }
+
+      function mountComponent(vnode, container) {
+        // 获取到子节点
+        const subtree = vnode.tag.render();
+        // 递归渲染子节点
+        render(subtree, container);
+      }
+
+      const MyComponent = {
+        render() {
+          return {
+            tag: "div",
+            props: {},
+            children: [
+              {
+                tag: "button",
+                props: {
+                  onClick: () => alert(1),
+                },
+                children: "click me",
+              },
+            ],
+          };
+        },
+      };
+
+      const vnode = {
+        tag: MyComponent,
+      };
+
+      render(vnode, document.body);
+    </script>
+  </body>
+</html>
