@@ -1,5 +1,7 @@
 # vnext-analysis
 
+> 最近在看 HcySunYang 的新书 《Vue.js 设计与实现》，计划从设计者的角度思考一遍源码，并完善一些不足的流程和注释。
+
 此项目是在研究 Vue3 体系的源码分析的总结记录。现有 200+ 流程标记、20+ 思维导图、2+ Mini 版实现。
 
 ### 体系进度
@@ -8,6 +10,7 @@
 - [x] Vue-Router 4.0.0
 - [x] Vuex 4.0.0
 - [x] Pinia 2.0.0
+- [ ] HcySunYang《Vue.js 设计与实现》
 
 ### 相关内容
 
@@ -49,8 +52,10 @@
 
 ![4.2.Mini](./.docs/4.2.Mini.png)
 
-<!-- ### 参考资料 -->
+<!-- ### 参考资料
 
-<!-- 感谢所有社区优秀资源的贡献者们。 -->
+感谢所有社区优秀资源的贡献者们。
 
-<!-- [Vue3 核心源码解析](https://ustbhuangyi.github.io/vue-analysis/v3/new/) -->
+[Vue3 设计与实现](https://www.ituring.com.cn/book/2953)
+
+[Vue3 核心源码解析](https://ustbhuangyi.github.io/vue-analysis/v3/new/) -->

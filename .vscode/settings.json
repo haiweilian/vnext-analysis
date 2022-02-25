@@ -20,7 +20,7 @@
     "VUENEXT-KeepAlive",
     "VUEROUTER-路由原理",
     "VUEROUTER-路由守卫",
-    "PINIA-初始化"
+    "PINIA-流程设计"
   ],
   "todo-tree.highlights.customHighlight": {
     "VUETODO": {
@@ -80,7 +80,7 @@
     "VUEROUTER-路由守卫": {
       "background": "#7744BB"
     },
-    "PINIA-初始化": {
+    "PINIA-流程设计": {
       "background": "#CCDD77"
     }
   }
