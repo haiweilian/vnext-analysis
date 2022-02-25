@@ -25,7 +25,7 @@ export class Store {
     const { plugins = [], strict = false } = options;
 
     // store internal state
-    // 是否可以进行 commit
+    // 是否正在进行 commit
     this._committing = false;
     // 存储 actions
     this._actions = Object.create(null);
@@ -295,7 +295,7 @@ export class Store {
   // 提交
   _withCommit(fn) {
     const committing = this._committing;
-    // 开启，此时可以修改 state
+    // 开启：此时可以修改 state
     this._committing = true;
     // 执行 mutation
     fn();

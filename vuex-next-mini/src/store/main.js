@@ -1,4 +1,4 @@
-import { createStore } from "../../../vuex-next-4.0.0/dist/vuex.esm-bundler";
+import { createStore } from "../../vuex/index";
 
 const state = {
   count: 0,

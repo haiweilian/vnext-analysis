@@ -12,7 +12,7 @@ import { StateTree, StoreGeneric } from './types'
 /**
  * Creates a Pinia instance to be used by the application
  */
-// PINIA-初始化 1-createPinia()
+// PINIA-流程设计 1-createPinia()
 export function createPinia(): Pinia {
   const scope = effectScope(true)
   // NOTE: here we could check the window object for a state and directly set it
@@ -24,7 +24,7 @@ export function createPinia(): Pinia {
   let toBeInstalled: PiniaStorePlugin[] = []
 
   const pinia: Pinia = markRaw({
-    // PINIA-初始化 1.1-安装方法
+    // PINIA-流程设计 1.1-安装方法
     install(app: App) {
       // this allows calling useStore() outside of a component setup after
       // installing pinia's plugin
@@ -46,7 +46,7 @@ export function createPinia(): Pinia {
       }
     },
 
-    // PINIA-初始化 1.2-添加插件
+    // PINIA-流程设计 1.2-添加插件
     use(plugin) {
       if (!this._a && !isVue2) {
         toBeInstalled.push(plugin)
@@ -56,12 +56,12 @@ export function createPinia(): Pinia {
       return this
     },
 
-    // PINIA-初始化 1.3-全局属性
+    // PINIA-流程设计 1.3-全局属性
     // 插件
     _p,
     // it's actually undefined here
     // @ts-expect-error
-    // vue app
+    // Vue 实例
     _a: null,
     // 作用域
     _e: scope,

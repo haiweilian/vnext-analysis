@@ -9,10 +9,11 @@
 </template>
 <script>
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useStore } from '../vuex/index'
 export default {
   setup() {
     const store = useStore()
+    console.log(store)
     return {
       count: computed(() => store.state.count),
       evenOrOdd: computed(() => store.getters.evenOrOdd),

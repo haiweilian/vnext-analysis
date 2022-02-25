@@ -1,13 +1,15 @@
-import { computed, reactive, ref, toRefs } from "vue";
+import { computed, reactive } from "vue";
 
 let activePinia = null;
 
 const { assign } = Object;
 
+// 设置当前激活的 pinia
 function setActivePinia(pinia) {
   activePinia = pinia;
 }
 
+// 获取当前激活的 pinia
 function getActivePinia() {
   return activePinia;
 }
@@ -18,23 +20,29 @@ export function createPinia() {
     install() {
       setActivePinia(pinia);
     },
-    state: ref({}),
-    cache: new Map(),
+    cache: new Map(), // 缓存
   };
 
   return pinia;
 }
 
-// 定义模块 Store
+// 定义模块 store
+// id: 模块 id
+// options：对象 或 函数
 export function defineStore(id, options) {
   function useStore() {
     const pinia = getActivePinia();
 
     // 是否已经存在
     if (!pinia.cache.has(id)) {
-      createOptionsStore(id, options, pinia);
+      if (typeof options === "function") {
+        createSetupStore(id, options, pinia);
+      } else {
+        createOptionsStore(id, options, pinia);
+      }
     }
 
+    // 获取缓存返回
     const store = pinia.cache.get(id);
 
     return store;
@@ -43,17 +51,17 @@ export function defineStore(id, options) {
   return useStore;
 }
 
+// 处理对象配置，转换配置为函数
 function createOptionsStore(id, options, pinia) {
   const { state, actions, getters } = options;
 
   let store;
 
+  // 如果是对象会转化配置项，最后还是转化为函数，所有的配置转换成平级返回
   function setup() {
-    pinia.state.value[id] = state ? state() : {};
-
     return assign(
-      // state 转换成单个 ref
-      toRefs(pinia.state.value[id]),
+      // state 值
+      state(),
       // actions 函数不变
       actions,
       // getters 转换成计算属性
@@ -61,6 +69,7 @@ function createOptionsStore(id, options, pinia) {
         computedGetters[name] = computed(() => {
           return getters[name].call(store);
         });
+        return computedGetters;
       }, {})
     );
   }
@@ -70,6 +79,7 @@ function createOptionsStore(id, options, pinia) {
   return store;
 }
 
+// 处理函数配置，添加实例方法
 function createSetupStore(id, setup, pinia) {
   const store = reactive({
     $reset: () => {},

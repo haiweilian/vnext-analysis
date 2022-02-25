@@ -107,7 +107,7 @@ function createOptionsStore<
   pinia: Pinia,
   hot?: boolean
 ): Store<Id, S, G, A> {
-  // PINIA-初始化 2.3-转换选项
+  // PINIA-流程设计 2.3-转换选项
   // 从选项中解构出配置选项
   const { state, actions, getters } = options
 
@@ -115,7 +115,7 @@ function createOptionsStore<
 
   let store: Store<Id, S, G, A>
 
-  // 如果是选项配置，会转化配置项，最后还是转化为函数
+  // 如果是选项配置，会转化配置项，最后还是转化为函数，所有的配置转换成平级返回
   function setup() {
     // 获取到 state，保存到  pinia.state 上
     if (!initialState && (!__DEV__ || !hot)) {
@@ -188,6 +188,10 @@ function createOptionsStore<
 
 const noop = () => {}
 
+// 主要处理（如果不关注这些，直接返回就可实现）：
+// 1、值的订阅用于插件开发
+// 2、与开发工具的交互
+// 3、添加一些辅助函数
 function createSetupStore<
   Id extends string,
   SS,
@@ -801,7 +805,7 @@ export type StoreState<SS> = SS extends Store<
  * @param id - id of the store (must be unique)
  * @param options - options to define the store
  */
-// PINIA-初始化 2-defineStore()
+// PINIA-流程设计 2-defineStore()
 export function defineStore<
   Id extends string,
   S extends StateTree = {},
@@ -880,8 +884,8 @@ export function defineStore(
     id = idOrOptions.id
   }
 
-  // PINIA-初始化 2.1-useStore()
-  // 注意 useStore 可以传入 pinia 实例，在某些情况了我们可以通过 useStore(rootStore) 放心的使用跨实例和 setup 之外调用。
+  // PINIA-流程设计 2.1-useStore()
+  // 注意 useStore 可以传入 pinia 实例，在某些情况了我们可以通过 useStore(rootStore) 在组件之外调用。
   // https://pinia.vuejs.org/core-concepts/outside-component-usage.html
   function useStore(pinia?: Pinia | null, hot?: StoreGeneric): StoreGeneric {
     const currentInstance = getCurrentInstance()
@@ -907,7 +911,7 @@ export function defineStore(
 
     pinia = activePinia!
 
-    // PINIA-初始化 2.2-解析选项
+    // PINIA-流程设计 2.2-解析选项
     // 判断此 id 是否已经存在
     // 这里有两种传入参数，*函数方式* 和 *选项方式*
     // 两者最终的处理都一致，*选项方式* 也会先转换成 *函数方式*，再调用 createSetupStore
@@ -926,6 +930,7 @@ export function defineStore(
       }
     }
 
+    // 根据 id 从缓存中获取当前模块
     const store: StoreGeneric = pinia._s.get(id)!
 
     if (__DEV__ && hot) {
