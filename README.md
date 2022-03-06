@@ -12,12 +12,6 @@
 - [x] Pinia 2.0.0
 - [ ] HcySunYang《Vue.js 设计与实现》
 
-### 相关内容
-
-- [Vue 团队公开的全新脚手架工具](https://github.com/haiweilian/tinylib-analysis/issues/4)
-- [从 Vue Dev Server 去理解 Vite 原理](https://github.com/haiweilian/tinylib-analysis/issues/5)
-- [在 Vue Devtools 中打开编辑器文件](https://github.com/haiweilian/tinylib-analysis/issues/9)
-
 ### 流程标记
 
 我一直想把流程调试过程中的主要断点保存下来，以便后续再次看的时候能轻松的找到不过没找到方案。现在使用了 `VsCode` 的 [Todo Tree](https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.todo-tree) 符合心中的预期，能高亮、能过滤、能搜索，如果需要调试就在浏览器对应的位置打上断点。
@@ -44,7 +38,7 @@
 
 ![part.3.composition/2.响应式实现原理.png](./vue-next-xmind/part.3.composition/2.响应式实现原理.png)
 
-### Mini 版本
+### 简易实现
 
 理解核心功能，实现简易的版本实现，目前实现了两个 _响应式原理_ 和 _DIFF 算法原理_。
 
@@ -52,10 +46,10 @@
 
 ![4.2.Mini](./.docs/4.2.Mini.png)
 
-<!-- ### 参考资料
+### 参考资料
 
 感谢所有社区优秀资源的贡献者们。
 
 [Vue3 设计与实现](https://www.ituring.com.cn/book/2953)
 
-[Vue3 核心源码解析](https://ustbhuangyi.github.io/vue-analysis/v3/new/) -->
+[Vue3 核心源码解析](https://ustbhuangyi.github.io/vue-analysis/v3/new/)
