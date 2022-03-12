@@ -53,7 +53,7 @@ export type RawSlots = {
 
 const isInternalKey = (key: string) => key[0] === '_' || key === '$stable'
 
-// VUENEXT-Slot 3.3-标准化插槽组件(数组)
+// VUENEXT-Slot 3.3-标准化插槽组件(数组)
 const normalizeSlotValue = (value: unknown): VNode[] =>
   isArray(value)
     ? value.map(normalizeVNode)
@@ -64,7 +64,7 @@ const normalizeSlot = (
   rawSlot: Function,
   ctx: ComponentInternalInstance | null | undefined
 ): Slot => {
-  // VUENEXT-Slot 3.2-设置插槽上下文
+  // VUENEXT-Slot 3.2-设置插槽上下文
   // 1、调用 withCtx 函数，返回一个新的函数 renderFnWithContext，用闭包保存当前上下文和参数
   // 2、当调用 ctx.slots.default({ text: "default" }) 时，调用 renderFnWithContext。
   // 3、设置当前上下文为定义时的上下文，也就是执行 render 函数时的当前组件实例，保证在子组件中渲染具体插槽内容时，它的渲染组件实例是父组件实例（父级模板里的所有内容都是在父级作用域中编译的）
@@ -96,7 +96,7 @@ const normalizeObjectSlots = (
     if (isInternalKey(key)) continue
     const value = rawSlots[key]
     if (isFunction(value)) {
-      // VUENEXT-Slot 3.1-标准化插槽(函数)
+      // VUENEXT-Slot 3.1-标准化插槽(函数)
       // 如果是一个函数，
       slots[key] = normalizeSlot(key, value, ctx)
     } else if (value != null) {
@@ -151,7 +151,7 @@ export const initSlots = (
       // make compiler marker non-enumerable
       def(children as InternalSlots, '_', type)
     } else {
-      // VUENEXT-Slot 3-标准化插槽
+      // VUENEXT-Slot 3-标准化插槽
       normalizeObjectSlots(
         children as RawSlots,
         (instance.slots = {}),

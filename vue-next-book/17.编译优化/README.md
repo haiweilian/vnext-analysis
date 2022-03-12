@@ -2,7 +2,7 @@
 
 _动态节点_
 
-提取动态内容的节点，在更新的时候只需更新动态节点。在一个模板组件的根节点、v-if、v-for 会产生 block，如果子节点包含动态内容的节点把此节点提升到 `block` 的 `dynamicChildren` 属性上，在 `path` 的时候如果包含 `dynamicChildren` 属性只需更新 `dynamicChildren` 上的节点，静态节点不需要更新。
+提取动态内容的节点，在更新的时候只需更新动态节点。在一个模板组件的根节点、v-if、v-for 会产生 block，如果子节点包含动态内容的节点把此节点提升到 `block` 的 `dynamicChildren` 属性上，在 `patch` 的时候如果包含 `dynamicChildren` 属性只需更新 `dynamicChildren` 上的节点，静态节点不需要更新。
 
 _静态提升_
 

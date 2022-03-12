@@ -4,7 +4,7 @@ import { warn } from './warning'
 let activeEffectScope: EffectScope | undefined
 const effectScopeStack: EffectScope[] = []
 
-// VUETODO todo
+// VUETODO Effect 作用域
 export class EffectScope {
   active = true
   effects: ReactiveEffect[] = []

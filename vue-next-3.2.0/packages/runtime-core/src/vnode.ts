@@ -432,7 +432,7 @@ function createBaseVNode(
 
   // 2、标准化子节点，把不同数据类型的 children 转成数组或者文本类型。
   if (needFullChildrenNormalization) {
-    // VUENEXT-Slot 1-标准化子节点
+    // VUENEXT-Slot 1-标准化子节点
     normalizeChildren(vnode, children)
     // normalize suspense children
     if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {

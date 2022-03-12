@@ -1,8 +1,8 @@
 # vnext-analysis
 
-> _最近在看《Vue.js 设计与实现》，计划从设计者的角度思考一遍源码，并完善一些不足的流程和注释_。
-
 此项目是在研究 Vue3 体系的源码分析的总结记录。现有 200+ 流程标记、20+ 思维导图、2+ Mini 版实现。
+
+由于已经看完此书了，所以推荐一本书[《Vue.js 设计与实现》](https://book.douban.com/subject/35768338)。书中讲的比较简单易懂可以理解核心概念和实现，另外我也完善了此项目的注释和流程标记。目录分类现在按照书的目录从新分类了，可以看完一大篇之后直接来看具体的源码。
 
 ### 体系进度
 
@@ -10,7 +10,7 @@
 - [x] Vue-Router 4.0.0
 - [x] Vuex 4.0.0
 - [x] Pinia 2.0.0
-- [ ] HcySunYang《Vue.js 设计与实现》
+- [x] HcySunYang《Vue.js 设计与实现》
 
 ### 流程标记
 
@@ -24,7 +24,7 @@
 
 ### 测试例子
 
-如果调试测试例子是必不可少，所有都写了简单的用例。因为编译原理我没有深入研究只是理解了编译过程，所以我大部分都是先写 `template` 的方式测试，然后通过 [template-explorer](https://vue-next-template-explorer.netlify.app/) 编译，再根据编译结果手写 `render` 的方式实现。
+如果调试测试例子是必不可少，所有都写了简单的用例。涉及编译部分都是先写模板的方式测试，然后通过 [template-explorer](https://vue-next-template-explorer.netlify.app/) 编译，再根据编译结果手写渲染函数的方式实现。
 
 ![2.1.测试例子](./.docs/2.1.测试例子.png)
 

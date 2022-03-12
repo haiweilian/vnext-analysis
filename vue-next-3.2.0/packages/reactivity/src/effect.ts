@@ -50,10 +50,12 @@ let activeEffect: ReactiveEffect | undefined
 export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
 export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
 
-// VUENEXT-响应式实现原理 8.1-设置当前激活的副作用函数(activeEffect)
+// VUENEXT-响应式实现原理 8.1-创建副作用函数实例(ReactiveEffect)
 export class ReactiveEffect<T = any> {
   active = true
-  // effect 存储相关的 deps 依赖
+  // 在 [5.2] 我们把 dep 添加到了 effect 的 deps 中，这样达到了一个互相引用的效果。便于 cleanupEffect 后续的清理工作。
+  // dep 存储着使用到此 key 的 effect 函数。
+  // effect 函数的 deps 存储着使用到它的 dep
   deps: Dep[] = []
 
   // can be attached after creation
@@ -66,7 +68,11 @@ export class ReactiveEffect<T = any> {
   onTrigger?: (event: DebuggerEvent) => void
 
   constructor(
+    // 副作用回调
     public fn: () => T,
+    // 调度执行配置，在 [7.3] 判断执行的时机，此功能应用非常广泛。
+    // 调度执行：在执行副作用函数的时候，由用户决定副作用函数的执行的时机和方式。
+    // 简单的说就是用户配置了回调就调用用户的配置的回调，用户可以在回调里执行另外的逻辑。
     public scheduler: EffectScheduler | null = null,
     scope?: EffectScope | null
   ) {
@@ -74,31 +80,40 @@ export class ReactiveEffect<T = any> {
     recordEffectScope(this, scope)
   }
 
+  // 执行
   run() {
     if (!this.active) {
       return this.fn()
     }
     if (!effectStack.includes(this)) {
       try {
-        // 压栈，嵌套 effect 的场景。
+        // 为什么要设计一个栈的结构？为了解决嵌套 effect 的场景
+        // Case:
+        // effect1(() => { activeEffect = effect1
+        //   effect2(() => { activeEffect = effect2
+        //     obj.a // 直接收集
+        //   })
+        //   obj.b // 这时也执行依赖收集，但是 activeEffect = effect2 所以要回退
+        // })
         // 设置激活 activeEffect
         effectStack.push((activeEffect = this))
 
         // 开启全局 shouldTrack，允许依赖收集
         enableTracking()
 
-        // 3.2.x 优化
+        // VUETODO 3.2.x 优化
         trackOpBit = 1 << ++effectTrackDepth
         if (effectTrackDepth <= maxMarkerBits) {
           initDepMarkers(this)
         } else {
+          // 清理依赖
           cleanupEffect(this)
         }
 
         // 执行原始函数
         return this.fn()
       } finally {
-        // 3.2.x 优化
+        // VUETODO 3.2.x 优化
         if (effectTrackDepth <= maxMarkerBits) {
           finalizeDepMarkers(this)
         }
@@ -115,6 +130,7 @@ export class ReactiveEffect<T = any> {
     }
   }
 
+  // 清理所有的依赖不在监听
   stop() {
     if (this.active) {
       cleanupEffect(this)
@@ -126,9 +142,15 @@ export class ReactiveEffect<T = any> {
   }
 }
 
+// 如果一个 effect 从新执行，那么此 effect 下的所有的响应式的 key 都要重新收集依赖。
+// 因为 dep 是一个 Set 所以不用考虑重复问题，要考虑比如在一个 v-if 判断里：
+//   - 如果条件为 true 时 if 块里的值收集了依赖。
+//   - 但后续变为了 false 那么在 if 块里的值之前收集的依赖应该清除，此时再取更新值就会造成无意义的更新。
 function cleanupEffect(effect: ReactiveEffect) {
+  // 取出此 effect 下所有 dep
   const { deps } = effect
   if (deps.length) {
+    // 清理 dep 里所有的 effect 函数
     for (let i = 0; i < deps.length; i++) {
       deps[i].delete(effect)
     }
@@ -155,11 +177,18 @@ export interface ReactiveEffectRunner<T = any> {
 }
 
 // VUENEXT-响应式实现原理 8-副作用函数(effect)
-// 组件和响应式数据是怎么关联的呢。
-// 1、在 setupRenderEffect 运行的 effect 函数 并保存到 activeEffect。
-// 2、当在渲染模板过程中访问到响应式数据的时候，
-// 3、取值触发 get 函数，执行 track 收集 activeEffect。
-// 4、设置触发 set 函数，执行 trigger 执行收集的依赖。
+// 现在还没说我们一直收集和执行 activeEffect 是怎么来的。
+// Case:
+// const o = {name: 'lian'}
+// const p = Proxy(0, {})
+// effect(() => {
+//   p.name
+// })
+// p.name = 'lhw'
+// 1、我们运行了一个 effect 函数。
+// 2、当在执行 effect 函数回调的过程中访问到响应式数据的时候。
+// 3、发生取值触发 get 函数，执行 track 收集 activeEffect。
+// 4、设置设置触发 set 函数，执行 trigger 执行收集的 effect。
 export function effect<T = any>(
   fn: () => T,
   options?: ReactiveEffectOptions
@@ -175,8 +204,8 @@ export function effect<T = any>(
     // effectScope 相关处理逻辑
     if (options.scope) recordEffectScope(_effect, options.scope)
   }
+  // 如果没有配置 lazy 则立即执行
   if (!options || !options.lazy) {
-    // 立即执行
     _effect.run()
   }
   // 绑定 run 函数，作为 effect runner
@@ -209,18 +238,21 @@ export function resetTracking() {
 }
 
 // VUENEXT-响应式实现原理 5-依赖收集过程(track)
-// 三个全局的变量：
-// 1、是否应该收集依赖
-// let shouldTrack = true
-// 2、当前激活的 effect
-// let activeEffect
-// 3、原始数据对象 map
-// const targetMap = new WeakMap()
+// 四个全局的变量：
+// 1、是否应该收集依赖 ==> let shouldTrack = true
+// 2、嵌套的 effect 栈 ==> const trackStack = []
+// 3、当前激活的 effect ==> let activeEffect
+// 4、原始数据对象 map ==> const targetMap = new WeakMap()
 export function track(target: object, type: TrackOpTypes, key: unknown) {
   if (!isTracking()) {
     return
   }
   // VUENEXT-响应式实现原理 5.1-创建对应的依赖结构
+  // WeakMap({ // -- 以代理对象为 key 创建一个 Map
+  //   [target]: Map({ // -- 以代理对象的 key 创建一个 Set
+  //     [key]: Set([effect1, effect2]) // -- 以 key 存储关联的 effect
+  //   })
+  // })
   // 1、每个 target 对应一个 depsMap，不存在创建。
   let depsMap = targetMap.get(target)
   if (!depsMap) {
@@ -249,26 +281,24 @@ export function trackEffects(
 ) {
   let shouldTrack = false
   if (effectTrackDepth <= maxMarkerBits) {
-    // 3.2.x 优化
+    // VUETODO 3.2.x 优化
     if (!newTracked(dep)) {
       dep.n |= trackOpBit // set newly tracked
       shouldTrack = !wasTracked(dep)
     }
   } else {
     // Full cleanup mode.
-    // 3.0.x 方式
+    // 此 effect 是否已经收集过
     shouldTrack = !dep.has(activeEffect!)
   }
 
-  // VUENEXT-响应式实现原理 5.2-收集当前运行的依赖
+  // VUENEXT-响应式实现原理 5.2-收集当前运行的副作用函数
   if (shouldTrack) {
-    // 1、一个 dep 存在多个 effect，收集当前激活的 effect 作为依赖
+    // 添加当前的 effect 函数
     dep.add(activeEffect!)
-    // 2、当前激活的 effect 收集 dep 集合作为依赖
+    // 同时把当前 dep 添加为 effect 的依赖，这样做是为了知道当前的 effect 都被谁收集了便于后续清理使用。
     activeEffect!.deps.push(dep)
     if (__DEV__ && activeEffect!.onTrack) {
-      // VUENEXT-生命周期 10.1-执行 onTrack 函数
-      // 在执行完依赖收集后，会执行 onTrack 函数，也就是遍历执行我们注册的 renderTracked 钩子函数，并传入一些信息帮助我们调试。
       activeEffect!.onTrack(
         Object.assign(
           {
@@ -282,8 +312,7 @@ export function trackEffects(
 }
 
 // VUENEXT-响应式实现原理 7-派发通知(trigger)
-// 原始数据对象 map
-// const targetMap = new WeakMap()
+// 四个全局的变量同上
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -292,7 +321,7 @@ export function trigger(
   oldValue?: unknown,
   oldTarget?: Map<unknown, unknown> | Set<unknown>
 ) {
-  // VUENEXT-响应式实现原理 7.1 获取所有的 dep 集合
+  // VUENEXT-响应式实现原理 7.1 获取所有的依赖集合
   // 1、通过 targetMap 拿到 target 对应的依赖集合
   const depsMap = targetMap.get(target)
   if (!depsMap) {
@@ -300,13 +329,16 @@ export function trigger(
     return
   }
 
-  // 3、根据 key 从 depsMap 中找到对应的 dep 集合；
+  // 3、根据 key 从 depsMap 中找到对应和相关的依赖集合
+  // 收集依赖的时候不仅仅只有 key 相关的，如果是数组还有 length 的依赖 和 for ... of 时的依赖。
   let deps: (Dep | undefined)[] = []
   if (type === TriggerOpTypes.CLEAR) {
+    // 取出集合收集副作用函数
     // collection being cleared
     // trigger all effects for target
     deps = [...depsMap.values()]
   } else if (key === 'length' && isArray(target)) {
+    // 取出数组 length 收集的副作用函数
     depsMap.forEach((dep, key) => {
       if (key === 'length' || key >= (newValue as number)) {
         deps.push(dep)
@@ -314,7 +346,7 @@ export function trigger(
     })
   } else {
     // schedule runs for SET | ADD | DELETE
-    // SET | ADD | DELETE 操作之一，添加对应的 effects
+    // SET | ADD | DELETE 操作之一
     if (key !== void 0) {
       deps.push(depsMap.get(key))
     }
@@ -324,9 +356,9 @@ export function trigger(
       // 添加
       case TriggerOpTypes.ADD:
         if (!isArray(target)) {
-          deps.push(depsMap.get(ITERATE_KEY))
+          deps.push(depsMap.get(ITERATE_KEY)) // Array 遍历指定的 key
           if (isMap(target)) {
-            deps.push(depsMap.get(MAP_KEY_ITERATE_KEY))
+            deps.push(depsMap.get(MAP_KEY_ITERATE_KEY)) // Map 遍历指定的 key
           }
         } else if (isIntegerKey(key)) {
           // new index added to array -> length changes
@@ -342,7 +374,7 @@ export function trigger(
           }
         }
         break
-      // 设置
+      // 修改
       case TriggerOpTypes.SET:
         if (isMap(target)) {
           deps.push(depsMap.get(ITERATE_KEY))
@@ -355,7 +387,9 @@ export function trigger(
     ? { target, type, key, newValue, oldValue, oldTarget }
     : undefined
 
+  // VUENEXT-响应式实现原理 7.2 获取所有的 effects 集合
   if (deps.length === 1) {
+    // 只有一个直接获取
     if (deps[0]) {
       if (__DEV__) {
         triggerEffects(deps[0], eventInfo)
@@ -364,7 +398,7 @@ export function trigger(
       }
     }
   } else {
-    // VUENEXT-响应式实现原理 7.2 获取所有的 effects 集合
+    // 多个就把二维数组转成平级
     const effects: ReactiveEffect[] = []
     for (const dep of deps) {
       if (dep) {
@@ -388,14 +422,15 @@ export function triggerEffects(
   for (const effect of isArray(dep) ? dep : [...dep]) {
     if (effect !== activeEffect || effect.allowRecurse) {
       if (__DEV__ && effect.onTrigger) {
-        // VUENEXT-生命周期 10.2-执行 onTrigger 函数
         effect.onTrigger(extend({ effect }, debuggerEventExtraInfo))
       }
+      // VUENEXT-响应式实现原理 7.3 直接执行与调度执行
       if (effect.scheduler) {
-        // 调度执行
+        // 调度执行：在执行副作用函数的时候，由用户决定副作用函数的执行的时机和方式。
+        // 简单的说就是用户配置了回调就调用用户的配置的回调，用户可以在回调里运行 effect.run()
         effect.scheduler()
       } else {
-        // 运行 effect
+        // 直接运行
         effect.run()
       }
     }

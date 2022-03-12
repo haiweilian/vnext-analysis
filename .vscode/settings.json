@@ -2,29 +2,53 @@
   "editor.formatOnSave": true,
   "todo-tree.general.tags": [
     "VUETODO",
-    "VUENEXT-组件渲染",
-    "VUENEXT-组件更新",
-    "VUENEXT-组件初始化",
+
+    "PINIA-流程设计",
+
+    "VUEROUTER-路由原理",
+    "VUEROUTER-路由守卫",
+
     "VUENEXT-响应式实现原理",
     "VUENEXT-计算属性",
     "VUENEXT-侦听器",
+    "VUENEXT-组件渲染",
+    "VUENEXT-组件更新",
+    "VUENEXT-组件初始化",
     "VUENEXT-异步任务队列",
     "VUENEXT-生命周期",
     "VUENEXT-依赖注入",
-    "VUENEXT-编译过程",
     "VUENEXT-Props",
     "VUENEXT-Slot",
-    "VUENEXT-Directive",
-    "VUENEXT-VModel",
     "VUENEXT-Teleport",
     "VUENEXT-KeepAlive",
-    "VUEROUTER-路由原理",
-    "VUEROUTER-路由守卫",
-    "PINIA-流程设计"
+    "VUENEXT-编译过程",
+    "VUENEXT-Directive",
+    "VUENEXT-VModel"
   ],
   "todo-tree.highlights.customHighlight": {
     "VUETODO": {
       "background": "#ffffff"
+    },
+
+    "PINIA-流程设计": {
+      "background": "#CCDD77"
+    },
+
+    "VUEROUTER-路由原理": {
+      "background": "#99ff11"
+    },
+    "VUEROUTER-路由守卫": {
+      "background": "#7744BB"
+    },
+
+    "VUENEXT-响应式实现原理": {
+      "background": "#669933"
+    },
+    "VUENEXT-计算属性": {
+      "background": "#009900"
+    },
+    "VUENEXT-侦听器": {
+      "background": "#99cccc"
     },
     "VUENEXT-组件渲染": {
       "background": "#99cc33"
@@ -35,15 +59,6 @@
     "VUENEXT-组件初始化": {
       "background": "#33cc00"
     },
-    "VUENEXT-响应式实现原理": {
-      "background": "#669933"
-    },
-    "VUENEXT-计算属性": {
-      "background": "#009900"
-    },
-    "VUENEXT-侦听器": {
-      "background": "#99cccc"
-    },
     "VUENEXT-异步任务队列": {
       "background": "#0099ff"
     },
@@ -53,20 +68,11 @@
     "VUENEXT-依赖注入": {
       "background": "#3333ff"
     },
-    "VUENEXT-编译过程": {
-      "background": "#c5b6d4"
-    },
     "VUENEXT-Props": {
       "background": "#006699"
     },
     "VUENEXT-Slot": {
       "background": "#cc9999"
-    },
-    "VUENEXT-Directive": {
-      "background": "#cc9900"
-    },
-    "VUENEXT-VModel": {
-      "background": "#cc33cc"
     },
     "VUENEXT-Teleport": {
       "background": "#993366"
@@ -74,14 +80,14 @@
     "VUENEXT-KeepAlive": {
       "background": "#660000"
     },
-    "VUEROUTER-路由原理": {
-      "background": "#99ff11"
+    "VUENEXT-编译过程": {
+      "background": "#c5b6d4"
     },
-    "VUEROUTER-路由守卫": {
-      "background": "#7744BB"
+    "VUENEXT-Directive": {
+      "background": "#cc9900"
     },
-    "PINIA-流程设计": {
-      "background": "#CCDD77"
+    "VUENEXT-VModel": {
+      "background": "#cc33cc"
     }
   }
 }

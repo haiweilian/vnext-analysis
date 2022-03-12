@@ -88,10 +88,11 @@ export type UnwrapNestedRefs<T> = T extends Ref ? T : UnwrapRefSimple<T>
  * count.value // -> 1
  * ```
  */
-// VUENEXT-响应式实现原理 1-把数据变成了响应式(reactive())
+// VUENEXT-响应式实现原理 1-创建响应式(reactive())
 export function reactive<T extends object>(target: T): UnwrapNestedRefs<T>
 export function reactive(target: object) {
   // if trying to observe a readonly proxy, return the readonly version.
+  // 如果是只读的直接返回只读版本
   if (target && (target as Target)[ReactiveFlags.IS_READONLY]) {
     return target
   }
@@ -148,7 +149,7 @@ export type DeepReadonly<T> = T extends Builtin
 // VUENEXT-响应式实现原理 9-只读对象(readonly())
 // readonly 和 reactive 函数的主要区别。
 // 1、就是执行 createReactiveObject 函数时的参数 isReadonly 不同。
-// 2、不需要依赖收集。
+// 2、其他 shallowReadonly、shallowReactive 也都是类似逻辑，多做一些判断。
 export function readonly<T extends object>(
   target: T
 ): DeepReadonly<UnwrapNestedRefs<T>> {
@@ -216,9 +217,9 @@ function createReactiveObject(
     return target
   }
 
-  // VUENEXT-响应式实现原理 3-创建响应式
-  // 如果类型是 Object、Array 使用 mutableHandlers(baseHandlers)
-  // 如果类型是 Map、Set、WeakMap、WeakSet 使用 mutableCollectionHandlers(collectionHandlers)
+  // VUENEXT-响应式实现原理 3-代理响应式
+  // 如果类型是 Object、Array 使用 mutableHandlers(baseHandlers) 代理配置。-- 重点学习的
+  // 如果类型是 Map、Set、WeakMap、WeakSet 使用 mutableCollectionHandlers(collectionHandlers) 代理配置。
 
   // 通过 Proxy 劫持 target 对象做一些操作。
   // 1、访问对象属性会触发 get 函数；
@@ -230,6 +231,8 @@ function createReactiveObject(
     target,
     targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers
   )
+
+  // 缓存已经代理过的对象
   proxyMap.set(target, proxy)
   return proxy
 }

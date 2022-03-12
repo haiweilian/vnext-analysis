@@ -20,10 +20,14 @@ export interface WritableComputedOptions<T> {
   set: ComputedSetter<T>
 }
 
+// VUENEXT-计算属性 2-创建 Computed 实例
 class ComputedRefImpl<T> {
+  // 自身存储的依赖
   public dep?: Dep = undefined
 
+  // 原始值
   private _value!: T
+  // 依赖的值是否改变
   private _dirty = true
   public readonly effect: ReactiveEffect<T>
 
@@ -35,16 +39,16 @@ class ComputedRefImpl<T> {
     private readonly _setter: ComputedSetter<T>,
     isReadonly: boolean
   ) {
-    // VUENEXT-计算属性 2-创建副作用函数
-    // 默认不执行，返回一个函数，当访问的时候并且依赖变化的时候再执行。
+    // VUENEXT-计算属性 3-创建副作用函数
+    // 默认不执行，返回一个函数，当访问的时候并且代理的数据变化的时候再执行。
     // 当执行 getter 的时候，当前的 activeEffect 就是 getter。
-    // 执行函数内部的 ref 触发了 get 就会把 getter 函数收集成依赖。
-    // 这样当 ref 变化的时候就会触发 getter 函数。
+    // 执行函数内部访问代理对象就会触发 get 就会把 getter 函数收集成依赖。
+    // 注意：这里传入了第二个参数利用了调度执行也就是不会立即 effect.run()
     this.effect = new ReactiveEffect(getter, () => {
       if (!this._dirty) {
-        // 值改变了
+        // 依赖的值改变了需要重新运算
         this._dirty = true
-        // 派发通知，自己本身被作为依赖，也是一种扩展行为。
+        // 派发通知
         triggerRefValue(this)
       }
     })
@@ -54,12 +58,13 @@ class ComputedRefImpl<T> {
   get value() {
     // the computed ref may get wrapped by other proxies e.g. readonly() #3376
     // 只有当我们访问计算属性的时候，它才会真正运行 computed getter 函数计算；
-    // 只要依赖不变化，就可以使用缓存的 value 而不用每次在渲染组件的时候都执行函数去计算
+    // 只要依赖的值不变化，就可以使用缓存的 value 而不用每次在渲染组件的时候都执行函数去计算
     const self = toRaw(this)
     // 依赖收集
     trackRefValue(self)
     if (self._dirty) {
       self._dirty = false
+      // 只有值改变了才从新运行获取最新值
       self._value = self.effect.run()!
     }
     return self._value
