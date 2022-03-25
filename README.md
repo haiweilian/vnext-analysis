@@ -34,9 +34,7 @@
 
 ![3.1.思维导图](./.docs/3.1.思维导图.png)
 
-![part.2.vnode/1.组件渲染.png](./vue-next-xmind/part.2.vnode/1.组件渲染.png)
-
-![part.3.composition/2.响应式实现原理.png](./vue-next-xmind/part.3.composition/2.响应式实现原理.png)
+![响应式实现原理](./vue-next-xmind/part.2.reactivity/1.响应式实现原理.png)
 
 ### 简易实现
 
