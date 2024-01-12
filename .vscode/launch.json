@@ -1,0 +1,48 @@
+{
+  // 使用 IntelliSense 了解相关属性。
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Vue",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Pinia",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "enableContentValidation": false,
+      "pathMapping": {
+        "/src/": "${workspaceFolder}/pinia-examples/src/"
+      }
+    },
+    {
+      "name": "Vuex",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "enableContentValidation": false,
+      "pathMapping": {
+        "/src/": "${workspaceFolder}/vuex-next-examples/src/"
+      }
+    },
+    {
+      "name": "VueRouter",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "enableContentValidation": false,
+      "pathMapping": {
+        "/src/": "${workspaceFolder}/vue-router-next-examples/src/"
+      }
+    }
+  ]
+}

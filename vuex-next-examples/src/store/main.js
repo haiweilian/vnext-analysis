@@ -1,4 +1,4 @@
-import { createStore } from "../../../vuex-next-4.0.0/src/index.js";
+import { createStore } from "../../../vuex-next-4.0.0/dist/vuex.esm-bundler.js";
 
 window.__DEV__ = true;
 

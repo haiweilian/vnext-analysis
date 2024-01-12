@@ -1,5 +1,6 @@
 {
   "editor.formatOnSave": true,
+  "liveServer.settings.port": 3000,
   "todo-tree.general.tags": [
     "VUETODO",
 

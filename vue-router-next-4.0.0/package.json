@@ -16,7 +16,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "rollup -c rollup.config.js",
+    "build": "rollup -c rollup.config.js --mode=development --sourcemap",
     "build:dts": "api-extractor run --local --verbose && tail -n +7 src/globalExtensions.ts >> dist/vue-router.d.ts",
     "build:dev": "rollup -c -w rollup.config.js --mode=development --sourcemap",
     "dev": "webpack serve --mode=development",
